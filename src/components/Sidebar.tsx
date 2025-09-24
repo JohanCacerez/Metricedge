@@ -1,5 +1,5 @@
 // src/components/Sidebar.tsx
-import { FaCogs, FaTachometerAlt, FaRuler, FaSignOutAlt } from "react-icons/fa";
+import { FaCogs, FaRuler, FaSignOutAlt } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
 
 interface SidebarProps {
