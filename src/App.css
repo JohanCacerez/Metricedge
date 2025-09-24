@@ -1,1 +1,70 @@
 @import "tailwindcss";
+
+@import "tailwindcss";
+
+@theme {
+  /* Fondo y superficies */
+  --color-bg: #0d1117;
+  --color-surface: #161b22;
+
+  /* Colores principales */
+  --color-primary: #1f6feb;
+  --color-primary-light: #388bfd;
+  --color-primary-dark: #1158c7;
+
+  /* Colores secundarios */
+  --color-secondary: #7c3aed;
+  --color-secondary-light: #a78bfa;
+  --color-secondary-dark: #5b21b6;
+
+  /* Texto */
+  --color-text: #f0f6fc;
+  --color-text-muted: #8b949e;
+  --color-text-inverse: #0d1117;
+
+  /* Botones */
+  --color-button-save: #2ea043;
+  --color-button-save-hover: #3fb950;
+  --color-button-delete: #f85149;
+  --color-button-delete-hover: #da3633;
+
+  /* Bordes y separadores */
+  --color-border: #30363d;
+  --color-divider: #21262d;
+
+  /* Estados */
+  --color-success: #2ea043;
+  --color-warning: #d29922;
+  --color-error: #f85149;
+
+  /* Tipografías */
+  --font-title: "Poppins", sans-serif;
+  --font-body: "Inter", Arial, sans-serif;
+  --font-ui: "Urbanist", sans-serif;
+  --font-code: "JetBrains Mono", monospace;
+}
+
+/* Links */
+.link {
+  @apply text-[var(--color-primary)] hover:text-[var(--color-primary-light)] cursor-pointer;
+}
+
+/* Botones base */
+.btn {
+  @apply flex items-center gap-3 px-4 py-2 justify-center rounded-lg cursor-pointer 
+         font-ui font-bold text-sm transition-colors;
+}
+
+.btn-default {
+  @apply bg-secondary text-text hover:bg-secondary-light;
+}
+
+.btn-save {
+  @apply bg-[var(--color-button-save)] text-white 
+         hover:bg-[var(--color-button-save-hover)];
+}
+
+.btn-delete {
+  @apply bg-[var(--color-button-delete)] text-white 
+         hover:bg-[var(--color-button-delete-hover)];
+}

@@ -1,9 +1,10 @@
 import "./App.css";
+import { Sidebar } from "./components/Sidebar";
 
 function App() {
   return (
     <>
-      <h1 className="bg-amber-400">Hola mundo</h1>
+      <Sidebar userName="Johan" activeModel="Rear lh" />
     </>
   );
 }

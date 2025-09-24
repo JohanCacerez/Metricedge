@@ -50,7 +50,6 @@ function initDB() {
     db.prepare(
       "INSERT INTO users (nombre, contrasena, rol) VALUES (?, ?, ?)"
     ).run(defaultUsername, hashedPassword, "admin");
-    console.log("Usuario admin creado: admin / admin123 (contraseña hasheada)");
   }
 }
 initDB();
