@@ -1,10 +1,10 @@
 import "./App.css";
-import { Sidebar } from "./components/Sidebar";
+import AppRoutes from "./routes";
 
 function App() {
   return (
     <>
-      <Sidebar userName="Johan" activeModel="Rear lh" />
+      <AppRoutes />
     </>
   );
 }
