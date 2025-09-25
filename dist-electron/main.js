@@ -1,5 +1,4 @@
 import { app, ipcMain, BrowserWindow } from "electron";
-import { createRequire as createRequire$1 } from "node:module";
 import { fileURLToPath } from "node:url";
 import path$1 from "node:path";
 import { createRequire } from "module";
@@ -81,7 +80,6 @@ function registerUserHandlers() {
     (_e, credentials) => Auth(credentials)
   );
 }
-createRequire$1(import.meta.url);
 const __dirname = path$1.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path$1.join(__dirname, "..");
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
