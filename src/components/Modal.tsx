@@ -15,8 +15,8 @@ export const Modal = ({
   onClose,
   title,
   children,
-  width = "400px",
-  height = "300px",
+  width = "450px",
+  height = "320px",
 }: ModalProps) => {
   if (!isOpen) return null;
 
@@ -37,7 +37,7 @@ export const Modal = ({
 
         {/* Título */}
         {title && (
-          <h2 className="text-xl font-semibold mb-4 text-text">{title}</h2>
+          <h2 className="text-xl font-title mb-4 text-text">{title}</h2>
         )}
 
         {/* Contenido */}

@@ -7,7 +7,7 @@ import { useState } from "react";
 
 import { Modal } from "../components/Modal";
 import { useUserStore } from "../store/userStore";
-import { SettingsModal } from "./Content Modals/SettingsModal";
+import { SettingsModal } from "./Content Modals/SettingsModal/SettingsModal";
 
 interface SidebarProps {
   userName: string;
