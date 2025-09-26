@@ -37,7 +37,7 @@ export default function MainLayout() {
         activeModel="Rear lh"
       />
 
-      <main className="flex-1 p-4 overflow-auto bg-gray-50">
+      <main className="flex-1 p-4 overflow-auto bg-bg">
         <Outlet />
       </main>
 
@@ -64,7 +64,7 @@ export default function MainLayout() {
           />
 
           <button
-            className="px-4 py-2 rounded-md bg-blue-600 text-white"
+            className="px-4 py-2 rounded-md bg-blue-600 text-white cursor-pointer"
             onClick={handleLogin}
             disabled={loading}
           >

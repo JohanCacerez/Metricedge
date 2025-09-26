@@ -6,29 +6,42 @@ interface ModalProps {
   onClose: () => void;
   title?: string;
   children: ReactNode;
+  width?: string; // Ejemplo: "600px" o "50%"
+  height?: string; // Ejemplo: "400px" o "80vh"
 }
 
-export const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
+export const Modal = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  width = "400px",
+  height = "300px",
+}: ModalProps) => {
   if (!isOpen) return null;
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 bg-opacity-50">
-      {/* Contenedor del modal */}
-      <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative">
+      {/* Contenedor del modal con ancho y alto dinámicos */}
+      <div
+        className={`bg-bg rounded-xl shadow-lg p-6 relative flex flex-col`}
+        style={{ width, height }}
+      >
         {/* Botón de cerrar */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+          className="absolute top-3 right-3 text-text-muted hover:text-button-delete-hover"
         >
           ✕
         </button>
 
         {/* Título */}
         {title && (
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">{title}</h2>
+          <h2 className="text-xl font-semibold mb-4 text-text">{title}</h2>
         )}
+
         {/* Contenido */}
-        <div>{children}</div>
+        <div className="flex-1 overflow-auto rounded">{children}</div>
       </div>
     </div>,
     document.body

@@ -7,6 +7,7 @@ import { useState } from "react";
 
 import { Modal } from "../components/Modal";
 import { useUserStore } from "../store/userStore";
+import { SettingsModal } from "./Content Modals/SettingsModal";
 
 interface SidebarProps {
   userName: string;
@@ -35,7 +36,7 @@ export const Sidebar = ({ userName, activeModel }: SidebarProps) => {
         <div className="text-lg font-body">{userName}</div>
         <button
           onClick={() => setModalOpen(true)}
-          className="text-gray-300 hover:text-white cursor-pointer"
+          className="text-text-muted hover:text-text cursor-pointer"
         >
           <FaCogs size={20} />
         </button>
@@ -74,28 +75,15 @@ export const Sidebar = ({ userName, activeModel }: SidebarProps) => {
           <FaSignOutAlt className="mr-2" /> Cerrar sesión
         </button>
       </div>
+
       <Modal
         isOpen={isModalOpen}
         onClose={() => setModalOpen(false)}
         title="Ajustes"
+        width="1000px"
+        height="600px"
       >
-        <p className="text-gray-700">
-          Aquí puedes configurar parámetros de la aplicación o del usuario.
-        </p>
-        <div className="flex justify-end gap-2 mt-4">
-          <button
-            onClick={() => setModalOpen(false)}
-            className="px-4 py-2 rounded-md border"
-          >
-            Cerrar
-          </button>
-          <button
-            onClick={() => console.log("Guardar ajustes")}
-            className="px-4 py-2 rounded-md bg-blue-600 text-white"
-          >
-            Guardar
-          </button>
-        </div>
+        <SettingsModal />
       </Modal>
     </aside>
   );
