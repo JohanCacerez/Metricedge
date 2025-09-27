@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { LoginCredentials, User } from "../types/user";
+import { LoginCredentials, User, AuthUser } from "../types/user";
 
 interface UserState {
   user: User | null;
@@ -7,6 +7,7 @@ interface UserState {
   loading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
+  create: (credentials: AuthUser) => Promise<void>;
 }
 
 export const useUserStore = create<UserState>((set) => ({
@@ -37,4 +38,20 @@ export const useUserStore = create<UserState>((set) => ({
   },
 
   logout: () => set({ user: null, message: null }),
+  create: async (credentials) => {
+    try {
+      const response = await window.electronAPI.users.create(credentials);
+
+      if (response.success) {
+        set({ message: response.message }); // <-- aquí recuperas el mensaje de addUser
+      } else {
+        set({ message: response.message });
+        throw new Error(response.message);
+      }
+    } catch (err) {
+      if (err instanceof Error) throw err;
+      set({ message: "Error de conexión store" });
+      throw new Error("Error de conexión store");
+    }
+  },
 }));

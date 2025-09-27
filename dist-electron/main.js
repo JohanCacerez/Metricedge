@@ -71,13 +71,46 @@ async function Auth(credentials) {
       }
     };
   } catch (err) {
-    return { success: false, message: "Error de conexión service" };
+    return { success: false, message: "Error de conexión" };
+  }
+}
+async function addUser(credentials) {
+  const { username, password, role } = credentials;
+  try {
+    if (!username || !password || !role) {
+      return { success: false, message: "Debes de llenar todos los campos" };
+    }
+    const userExist = db.prepare("SELECT * FROM users WHERE nombre = ?").get(username);
+    if (userExist) {
+      return { success: false, message: "Ya existe un usuario con ese nombre" };
+    }
+    if (password.length < 6) {
+      return {
+        success: false,
+        message: "La contraseña debe tener minimo 6 caracteres"
+      };
+    }
+    const passwordHash = await bcrypt.hash(password, 10);
+    db.prepare(
+      "INSERT INTO users (nombre, contrasena, rol) VALUES (?, ?, ?)"
+    ).run(username, passwordHash, role);
+    return {
+      success: true,
+      message: "Usuario creado con éxito",
+      username
+    };
+  } catch (err) {
+    return { success: false, message: `Error al crear el usuario: ${err}` };
   }
 }
 function registerUserHandlers() {
   ipcMain.handle(
     "users:auth",
     (_e, credentials) => Auth(credentials)
+  );
+  ipcMain.handle(
+    "users:create",
+    (_e, credentials) => addUser(credentials)
   );
 }
 const __dirname = path$1.dirname(fileURLToPath(import.meta.url));

@@ -1,4 +1,9 @@
-import { LoginCredentials, LoginResponse } from "./user";
+import {
+  AuthResponse,
+  AuthUser,
+  LoginCredentials,
+  LoginResponse,
+} from "./user";
 
 declare global {
   interface Window {
@@ -10,4 +15,5 @@ declare global {
 
 export interface UserAPI {
   auth: (credentials: LoginCredentials) => Promise<LoginResponse>;
+  create: (credentials: AuthUser) => Promise<AuthResponse>;
 }

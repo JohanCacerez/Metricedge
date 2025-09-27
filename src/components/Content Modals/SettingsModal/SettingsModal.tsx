@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useUserStore } from "../../../store/userStore";
+import PanelStettings from "./PanelSettings/PanelSettings";
 
 interface TabContentProps {
   currentTab: string;
@@ -8,9 +9,9 @@ interface TabContentProps {
 const TabContent = ({ currentTab }: TabContentProps) => {
   switch (currentTab) {
     case "usuario":
-      return <div>Contenido de Usuario</div>;
+      return <div>heudshas</div>;
     case "panel":
-      return <div>Contenido de Panel de Control</div>;
+      return <PanelStettings />;
     case "sensors":
       return <div>Contenido de Sensors</div>;
     default:
