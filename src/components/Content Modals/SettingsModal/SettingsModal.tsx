@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useUserStore } from "../../../store/userStore";
 
 interface TabContentProps {
   currentTab: string;
@@ -20,6 +21,10 @@ const TabContent = ({ currentTab }: TabContentProps) => {
 export const SettingsModal = () => {
   const [currentTab, setCurrentTab] = useState<string>("usuario");
 
+  const { user } = useUserStore();
+
+  const isAdmin = user?.role === "admin";
+
   return (
     <div className="flex flex-1 min-h-full">
       {/* Sidebar fijo */}
@@ -36,21 +41,31 @@ export const SettingsModal = () => {
         </button>
         <button
           onClick={() => setCurrentTab("panel")}
-          className={`w-full p-2 rounded ${
-            currentTab === "panel"
-              ? "bg-secondary text-white"
-              : "hover:bg-secondary-dark"
-          }`}
+          disabled={!isAdmin}
+          className={`w-full p-2 rounded 
+    ${
+      !isAdmin
+        ? "bg-surface text-gray-500 cursor-not-allowed" // estilos desactivado
+        : currentTab === "panel"
+        ? "bg-secondary text-white" // activo
+        : "hover:bg-secondary-dark" // hover normal
+    }
+  `}
         >
           Panel de control
         </button>
         <button
           onClick={() => setCurrentTab("sensors")}
-          className={`w-full p-2 rounded ${
-            currentTab === "sensors"
-              ? "bg-secondary text-white"
-              : "hover:bg-secondary-dark"
-          }`}
+          disabled={!isAdmin}
+          className={`w-full p-2 rounded 
+    ${
+      !isAdmin
+        ? "bg-surface text-gray-500 cursor-not-allowed" // estilos desactivado
+        : currentTab === "sensors"
+        ? "bg-secondary text-white" // activo
+        : "hover:bg-secondary-dark" // hover normal
+    }
+  `}
         >
           Sensors
         </button>
