@@ -9,5 +9,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("users:auth", credentials),
     create: (credentials: AuthUser) =>
       ipcRenderer.invoke("users:create", credentials),
+    delete: (username: string) => ipcRenderer.invoke("users:delete", username),
   },
 });

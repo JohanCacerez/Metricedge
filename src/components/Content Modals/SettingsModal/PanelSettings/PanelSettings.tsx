@@ -1,4 +1,5 @@
 import CreateUser from "./CreateUser";
+import DeleteUser from "./DeleteUser";
 import { ModelSelector } from "./ModelSelector";
 
 export default function PanelSettings() {
@@ -6,8 +7,8 @@ export default function PanelSettings() {
     <>
       <section className="flex flex-col gap-4">
         <ModelSelector />
-
         <CreateUser />
+        <DeleteUser />
       </section>
     </>
   );

@@ -16,4 +16,5 @@ declare global {
 export interface UserAPI {
   auth: (credentials: LoginCredentials) => Promise<LoginResponse>;
   create: (credentials: AuthUser) => Promise<AuthResponse>;
+  delete: (username: string) => Promise<AuthResponse>;
 }

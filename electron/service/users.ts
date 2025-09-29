@@ -77,3 +77,25 @@ export async function addUser(credentials: AuthUser): Promise<AuthResponse> {
     return { success: false, message: `Error al crear el usuario: ${err}` };
   }
 }
+
+export async function deleteUser(username: string): Promise<AuthResponse> {
+  try {
+    if (!username) {
+      return { success: false, message: "Debes de llenar todos los campos" };
+    }
+    const userExist = db
+      .prepare("SELECT * FROM users WHERE nombre = ?")
+      .get(username);
+    if (!userExist) {
+      return { success: false, message: "No existe ese usuario" };
+    }
+    db.prepare("DELETE FROM users WHERE nombre = ?").run(username);
+    return {
+      success: true,
+      message: "Usuario eliminado con éxito",
+      username: username,
+    };
+  } catch (err) {
+    return { success: false, message: `Error al eliminar el usuario: ${err}` };
+  }
+}

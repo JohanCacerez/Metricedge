@@ -8,13 +8,13 @@ interface UserState {
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
   create: (credentials: AuthUser) => Promise<void>;
+  delete: (username: string) => Promise<void>;
 }
 
 export const useUserStore = create<UserState>((set) => ({
   user: null,
   message: null,
   loading: false,
-
   login: async (credentials) => {
     set({ loading: true, message: null });
     try {
@@ -36,7 +36,6 @@ export const useUserStore = create<UserState>((set) => ({
       throw new Error("Error de conexión store");
     }
   },
-
   logout: () => set({ user: null, message: null }),
   create: async (credentials) => {
     try {
@@ -44,6 +43,21 @@ export const useUserStore = create<UserState>((set) => ({
 
       if (response.success) {
         set({ message: response.message }); // <-- aquí recuperas el mensaje de addUser
+      } else {
+        set({ message: response.message });
+        throw new Error(response.message);
+      }
+    } catch (err) {
+      if (err instanceof Error) throw err;
+      set({ message: "Error de conexión store" });
+      throw new Error("Error de conexión store");
+    }
+  },
+  delete: async (username) => {
+    try {
+      const response = await window.electronAPI.users.delete(username);
+      if (response.success) {
+        set({ message: response.message });
       } else {
         set({ message: response.message });
         throw new Error(response.message);

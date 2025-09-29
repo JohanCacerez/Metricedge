@@ -103,6 +103,25 @@ async function addUser(credentials) {
     return { success: false, message: `Error al crear el usuario: ${err}` };
   }
 }
+async function deleteUser(username) {
+  try {
+    if (!username) {
+      return { success: false, message: "Debes de llenar todos los campos" };
+    }
+    const userExist = db.prepare("SELECT * FROM users WHERE nombre = ?").get(username);
+    if (!userExist) {
+      return { success: false, message: "No existe ese usuario" };
+    }
+    db.prepare("DELETE FROM users WHERE nombre = ?").run(username);
+    return {
+      success: true,
+      message: "Usuario eliminado con éxito",
+      username
+    };
+  } catch (err) {
+    return { success: false, message: `Error al eliminar el usuario: ${err}` };
+  }
+}
 function registerUserHandlers() {
   ipcMain.handle(
     "users:auth",
@@ -111,6 +130,10 @@ function registerUserHandlers() {
   ipcMain.handle(
     "users:create",
     (_e, credentials) => addUser(credentials)
+  );
+  ipcMain.handle(
+    "users:delete",
+    (_e, username) => deleteUser(username)
   );
 }
 const __dirname = path$1.dirname(fileURLToPath(import.meta.url));
