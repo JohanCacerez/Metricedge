@@ -1,9 +1,14 @@
 import CreateUser from "./CreateUser";
+import { ModelSelector } from "./ModelSelector";
 
 export default function PanelSettings() {
   return (
     <>
-      <CreateUser />
+      <section className="flex flex-col gap-4">
+        <ModelSelector />
+
+        <CreateUser />
+      </section>
     </>
   );
 }

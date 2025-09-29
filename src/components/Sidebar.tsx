@@ -9,14 +9,16 @@ import { Modal } from "../components/Modal";
 import { useUserStore } from "../store/userStore";
 import { SettingsModal } from "./Content Modals/SettingsModal/SettingsModal";
 
+import { useModelStore } from "../store/modelStore";
+
 interface SidebarProps {
   userName: string;
-  activeModel: string;
 }
 
-export const Sidebar = ({ userName, activeModel }: SidebarProps) => {
+export const Sidebar = ({ userName }: SidebarProps) => {
   const [isModalOpen, setModalOpen] = useState(false);
   const { logout } = useUserStore();
+  const { activeModel } = useModelStore();
 
   const handleLogout = () => {
     try {
@@ -63,7 +65,7 @@ export const Sidebar = ({ userName, activeModel }: SidebarProps) => {
         <span className="text-sm text-text-muted font-code">
           Modelo activo:
         </span>
-        <div className="mt-1 font-code ">{activeModel}</div>
+        <div className="mt-1 font-code ">{activeModel?.name}</div>
       </div>
 
       {/* Cerrar sesión */}

@@ -40,7 +40,7 @@ export default function CreateUser() {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-surface border text-text border-border p-6 rounded-xl shadow-md">
+    <div className="w-full mx-auto bg-surface border text-text border-border p-6 rounded-xl shadow-md">
       <h2 className="text-xl font-title mb-4">Crear Usuario</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Nombre */}
@@ -77,7 +77,7 @@ export default function CreateUser() {
             name="role"
             value={formData.role}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="w-full p-2 border rounded-md text-primary-light"
           >
             <option value="admin">Admin</option>
             <option value="operador">Operador</option>
