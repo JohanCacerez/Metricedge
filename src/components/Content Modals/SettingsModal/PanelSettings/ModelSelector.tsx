@@ -4,10 +4,30 @@ import { Model } from "../../../../types/model";
 import { toast } from "sonner";
 
 const models: Model[] = [
-  { id: "rear-lh", name: "REAR LH" },
-  { id: "rear-rh", name: "REAR RH" },
-  { id: "front-lh", name: "FRONT LH" },
-  { id: "front-rh", name: "FRONT RH" },
+  {
+    id: "rear-lh",
+    name: "REAR LH",
+    np_saargumi: "DA17677",
+    np_client: "5A79965",
+  },
+  {
+    id: "rear-rh",
+    name: "REAR RH",
+    np_saargumi: "DA17676",
+    np_client: "5A79966",
+  },
+  {
+    id: "front-lh",
+    name: "FRONT LH",
+    np_saargumi: "DA17671",
+    np_client: "5A79963",
+  },
+  {
+    id: "front-rh",
+    name: "FRONT RH",
+    np_saargumi: "DA17670",
+    np_client: "5A79964",
+  },
 ];
 
 export const ModelSelector = () => {

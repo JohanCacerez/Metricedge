@@ -61,11 +61,23 @@ export const Sidebar = ({ userName }: SidebarProps) => {
       </nav>
 
       {/* Modelo activo */}
-      <div className="p-4 border-b border-border">
+      <div className="p-4 border-t border-border">
         <span className="text-sm text-text-muted font-code">
           Modelo activo:
         </span>
-        <div className="mt-1 font-code ">{activeModel?.name}</div>
+        <div className="mt-1 font-code text-primary ">{activeModel?.name}</div>
+        <div className="mt-1 font-code ">
+          NP SAARGUMI:{" "}
+          <span className="text-primary">{activeModel?.np_saargumi}</span>
+        </div>
+        <div className="mt-1 font-code ">
+          NP CLIENT:{" "}
+          <span className="text-primary">{activeModel?.np_client}</span>
+        </div>
+      </div>
+
+      <div className="p-4 flex justify-center">
+        <img src="/BMW_logo.png" alt="logo BMW" width={100} height={100} />
       </div>
 
       {/* Cerrar sesión */}
