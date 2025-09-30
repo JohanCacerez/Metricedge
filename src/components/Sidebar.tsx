@@ -34,7 +34,10 @@ export const Sidebar = ({ userName }: SidebarProps) => {
   return (
     <aside className="h-screen w-64 bg-surface text-text font-body flex flex-col">
       {/* Usuario y ajustes */}
-      <div className="flex items-center justify-between p-4 border-b border-border">
+      <div className="flex flex-col items-center justify-between p-4 border-b border-border">
+        <img src="./COGATEC.png" alt="coga" />
+      </div>
+      <div className="flex w-full p-4 items-center border-b border-border justify-between">
         <div className="text-lg font-body">{userName}</div>
         <button
           onClick={() => setModalOpen(true)}
@@ -43,7 +46,6 @@ export const Sidebar = ({ userName }: SidebarProps) => {
           <FaCogs size={20} />
         </button>
       </div>
-
       {/* Rutas de la app */}
       <nav className="flex-1 p-4 space-y-2 font-body">
         <NavLink
