@@ -17,4 +17,9 @@ export interface UserAPI {
   auth: (credentials: LoginCredentials) => Promise<LoginResponse>;
   create: (credentials: AuthUser) => Promise<AuthResponse>;
   delete: (username: string) => Promise<AuthResponse>;
+  changePassword: (
+    idUser: number,
+    currentPassword: string,
+    newPassword: string
+  ) => Promise<AuthResponse>;
 }

@@ -96,6 +96,47 @@ export async function deleteUser(username: string): Promise<AuthResponse> {
       username: username,
     };
   } catch (err) {
-    return { success: false, message: `Error al eliminar el usuario: ${err}` };
+    return { success: false, message: `Error al eliminar el usuario` };
+  }
+}
+
+export async function changePassword(
+  idUser: number,
+  currentPassword: string,
+  newPassword: string
+): Promise<AuthResponse> {
+  try {
+    if (!newPassword || !currentPassword) {
+      return { success: false, message: "Debes de llenar todos los campos" };
+    }
+    if (newPassword.length < 6) {
+      return {
+        success: false,
+        message: "La contraseña debe tener minimo 6 caracteres",
+      };
+    }
+    const comparePassword = db
+      .prepare("SELECT contrasena FROM users WHERE id = ?")
+      .get(idUser);
+    if (
+      !comparePassword ||
+      !(await bcrypt.compare(currentPassword, comparePassword.contrasena))
+    ) {
+      return { success: false, message: "Contraseña actual incorrecta" };
+    }
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    db.prepare("UPDATE users SET contrasena = ? WHERE id = ?").run(
+      passwordHash,
+      idUser
+    );
+    return {
+      success: true,
+      message: "Contraseña cambiada con éxito",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: `Error al cambiar la contraseña`,
+    };
   }
 }

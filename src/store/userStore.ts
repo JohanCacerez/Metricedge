@@ -9,6 +9,11 @@ interface UserState {
   logout: () => void;
   create: (credentials: AuthUser) => Promise<void>;
   delete: (username: string) => Promise<void>;
+  changePassword: (
+    idUser: number,
+    currentPassword: string,
+    newPassword: string
+  ) => Promise<void>;
 }
 
 export const useUserStore = create<UserState>((set) => ({
@@ -56,6 +61,25 @@ export const useUserStore = create<UserState>((set) => ({
   delete: async (username) => {
     try {
       const response = await window.electronAPI.users.delete(username);
+      if (response.success) {
+        set({ message: response.message });
+      } else {
+        set({ message: response.message });
+        throw new Error(response.message);
+      }
+    } catch (err) {
+      if (err instanceof Error) throw err;
+      set({ message: "Error de conexión store" });
+      throw new Error("Error de conexión store");
+    }
+  },
+  changePassword: async (idUser, currentPassword, newPassword) => {
+    try {
+      const response = await window.electronAPI.users.changePassword(
+        idUser,
+        currentPassword,
+        newPassword
+      );
       if (response.success) {
         set({ message: response.message });
       } else {

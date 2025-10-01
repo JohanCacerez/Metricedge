@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useUserStore } from "../../../store/userStore";
 import PanelStettings from "./PanelSettings/PanelSettings";
 import { SensorConfig } from "./SensorSettings/SensorConfig";
+import UserSettings from "./UserSettings/UserSettings";
 
 interface TabContentProps {
   currentTab: string;
@@ -10,13 +11,13 @@ interface TabContentProps {
 const TabContent = ({ currentTab }: TabContentProps) => {
   switch (currentTab) {
     case "usuario":
-      return <div>heudshas</div>;
+      return <UserSettings />;
     case "panel":
       return <PanelStettings />;
     case "sensors":
       return <SensorConfig />;
     default:
-      return <div>Selecciona una pestaña</div>;
+      return <UserSettings />;
   }
 };
 
