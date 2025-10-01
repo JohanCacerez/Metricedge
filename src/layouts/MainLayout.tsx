@@ -13,10 +13,7 @@ export default function MainLayout() {
 
   return (
     <div className="flex h-screen">
-      <Sidebar
-        userName={isAuth ? user?.username || "Usuario" : "Invitado"}
-        activeModel="Rear lh"
-      />
+      <Sidebar userName={isAuth ? user?.username || "Usuario" : "Invitado"} />
 
       <main className="flex-1 p-4 overflow-auto bg-bg">
         <Outlet />
