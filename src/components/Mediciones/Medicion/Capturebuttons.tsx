@@ -1,5 +1,3 @@
-import React from "react";
-
 export default function Capturebuttons() {
   return (
     <div className="flex flex-col h-full gap-4 justify-center">
