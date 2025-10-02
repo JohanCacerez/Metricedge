@@ -6,11 +6,8 @@ export default function Index() {
       <div className="flex justify-center mb-2">
         <h1 className="text-text font-title text-4xl">Medicion</h1>
       </div>
-      <div className="flex-1 flex flex-col gap-8">
-        <section className="flex-[1] bg-surface shadow-md border border-border rounded-2xl p-4">
-          Graficas
-        </section>
-        <section className="flex-[2] bg-surface shadow-md border border-border rounded-2xl p-4">
+      <div className="flex flex-col gap-8">
+        <section className=" bg-surface shadow-md border border-border rounded-2xl p-4">
           <Metric />
         </section>
       </div>
