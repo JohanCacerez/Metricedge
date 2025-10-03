@@ -31,7 +31,6 @@ db.exec(`
     medida2 REAL NOT NULL,
     medida3 REAL,
     medida4 REAL,
-    FOREIGN KEY (modelo_id) REFERENCES modelos(id),
     FOREIGN KEY (user_id) REFERENCES users(id)
   );
 `);
@@ -175,10 +174,6 @@ function registerUserHandlers() {
 const basePath = app.getPath("userData");
 const sensorPath = join(basePath, "simulacion.py");
 const readSensor = async ({ port, mm, zero, device }) => {
-  console.log("puerto", port);
-  console.log("mm", mm);
-  console.log("device", device);
-  console.log("zero", zero);
   return new Promise((resolve) => {
     exec(
       `py "${sensorPath}" ${port} ${mm} ${zero} ${device} `,
@@ -203,6 +198,32 @@ const readSensor = async ({ port, mm, zero, device }) => {
 function registerSensorHandlers() {
   ipcMain.handle("sensor:read", (_e, config) => {
     return readSensor(config);
+  });
+}
+function saveMeasurements(measurement) {
+  const { modeloId, userId, measurements } = measurement;
+  try {
+    const insert = db.prepare(
+      `INSERT INTO mediciones (modelo_id, user_id, medida1, medida2, medida3, medida4)
+       VALUES (?, ?, ?, ?, ?, ?)`
+    );
+    insert.run(
+      modeloId,
+      userId,
+      measurements[0],
+      measurements[1],
+      measurements[2],
+      measurements[3]
+    );
+    return { success: true, message: "Mediciones guardadas con éxito" };
+  } catch (error) {
+    console.error("Error al guardar las mediciones:", error);
+    return { success: false, message: "Error al guardar las mediciones" };
+  }
+}
+function registerMeasurementHandlers() {
+  ipcMain.handle("measurements:save", async (_e, measurement) => {
+    return await saveMeasurements(measurement);
   });
 }
 const __dirname = path$1.dirname(fileURLToPath(import.meta.url));
@@ -242,6 +263,7 @@ app.on("activate", () => {
 app.whenReady().then(() => {
   registerUserHandlers();
   registerSensorHandlers();
+  registerMeasurementHandlers();
   createWindow();
 });
 export {

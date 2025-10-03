@@ -53,7 +53,9 @@ const CaptureImage = forwardRef<CaptureImageRef>((_props, ref) => {
   const updateSensorReading = async () => {
     if (!inputs.length) return;
 
-    // Determinar sensor correcto según input y modelo
+    // Si ya medimos todos los inputs, no hacer nada
+    if (activeIndex >= inputs.length) return;
+
     let sensor = currentSensor === 1 ? activeSensor1 : activeSensor2;
 
     if (
@@ -61,10 +63,13 @@ const CaptureImage = forwardRef<CaptureImageRef>((_props, ref) => {
       activeIndex === 3
     ) {
       sensor = activeSensor2;
-      setCurrentSensor(2); // actualizar el estado para mantener coherencia
+      setCurrentSensor(2);
     }
 
     if (!sensor) return;
+
+    // Solo actualizar si no hay valor capturado
+    if (capturedMeasurements[activeIndex] !== undefined) return;
 
     const result = await read({
       port: sensor.puerto.toString(),
@@ -92,7 +97,14 @@ const CaptureImage = forwardRef<CaptureImageRef>((_props, ref) => {
   useEffect(() => {
     const interval = setInterval(updateSensorReading, 500);
     return () => clearInterval(interval);
-  }, [activeSensor1, activeSensor2, activeIndex, currentSensor, zero]);
+  }, [
+    activeSensor1,
+    activeSensor2,
+    activeIndex,
+    currentSensor,
+    zero,
+    capturedMeasurements,
+  ]);
 
   const captureCurrentValue = async () => {
     if (activeIndex >= inputs.length) return;

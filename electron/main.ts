@@ -4,6 +4,7 @@ import path from "node:path";
 import "./db/index";
 import { registerUserHandlers } from "./db/controllers/users";
 import { registerSensorHandlers } from "./db/controllers/sensor";
+import { registerMeasurementHandlers } from "./db/controllers/measurement";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 process.env.APP_ROOT = path.join(__dirname, "..");
@@ -52,5 +53,6 @@ app.on("activate", () => {
 app.whenReady().then(() => {
   registerUserHandlers();
   registerSensorHandlers();
+  registerMeasurementHandlers();
   createWindow();
 });

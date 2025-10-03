@@ -33,7 +33,6 @@ db.exec(`
     medida2 REAL NOT NULL,
     medida3 REAL,
     medida4 REAL,
-    FOREIGN KEY (modelo_id) REFERENCES modelos(id),
     FOREIGN KEY (user_id) REFERENCES users(id)
   );
 `);

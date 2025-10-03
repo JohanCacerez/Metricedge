@@ -2,6 +2,7 @@ import { ipcRenderer, contextBridge } from "electron";
 
 import { AuthUser, LoginCredentials } from "../src/types/user";
 import { SensorConfig } from "../src/types/sensors";
+import { Measurement } from "../src/types/measurement";
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld("electronAPI", {
@@ -25,5 +26,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   },
   sensor: {
     read: (config: SensorConfig) => ipcRenderer.invoke("sensor:read", config),
+  },
+  measurements: {
+    save: (measurement: Measurement) =>
+      ipcRenderer.invoke("measurements:save", measurement),
   },
 });

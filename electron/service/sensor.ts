@@ -9,10 +9,6 @@ const basePath = app.getPath("userData");
 const sensorPath = join(basePath, "simulacion.py");
 
 export const readSensor = async ({ port, mm, zero, device }: SensorConfig) => {
-  console.log("puerto", port);
-  console.log("mm", mm);
-  console.log("device", device);
-  console.log("zero", zero);
   return new Promise<number | string>((resolve) => {
     exec(
       `py "${sensorPath}" ${port} ${mm} ${zero} ${device} `,

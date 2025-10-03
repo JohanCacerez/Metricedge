@@ -5,12 +5,14 @@ import {
   LoginCredentials,
   LoginResponse,
 } from "./user";
+import { Measurement } from "./measurement";
 
 declare global {
   interface Window {
     electronAPI: {
       users: UserAPI;
       sensor: SensorAPI;
+      measurements: MeasurementAPI;
     };
   }
 }
@@ -28,4 +30,10 @@ export interface UserAPI {
 
 export interface SensorAPI {
   read: (config: SensorConfig) => Promise<number | string>;
+}
+
+export interface MeasurementAPI {
+  save: (
+    measurement: Measurement
+  ) => Promise<{ success: boolean; message: string }>;
 }

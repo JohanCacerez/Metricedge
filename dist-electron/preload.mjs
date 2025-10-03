@@ -14,5 +14,8 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
   },
   sensor: {
     read: (config) => electron.ipcRenderer.invoke("sensor:read", config)
+  },
+  measurements: {
+    save: (measurement) => electron.ipcRenderer.invoke("measurements:save", measurement)
   }
 });
