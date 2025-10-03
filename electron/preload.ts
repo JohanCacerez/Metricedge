@@ -1,6 +1,7 @@
 import { ipcRenderer, contextBridge } from "electron";
 
 import { AuthUser, LoginCredentials } from "../src/types/user";
+import { SensorConfig } from "../src/types/sensors";
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld("electronAPI", {
@@ -21,5 +22,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
         currentPassword,
         newPassword
       ),
+  },
+  sensor: {
+    read: (config: SensorConfig) => ipcRenderer.invoke("sensor:read", config),
   },
 });

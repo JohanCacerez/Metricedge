@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import "./db/index";
 import { registerUserHandlers } from "./db/controllers/users";
+import { registerSensorHandlers } from "./db/controllers/sensor";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 process.env.APP_ROOT = path.join(__dirname, "..");
@@ -50,5 +51,6 @@ app.on("activate", () => {
 // ✅ Registrar handlers antes de crear ventanas
 app.whenReady().then(() => {
   registerUserHandlers();
+  registerSensorHandlers();
   createWindow();
 });

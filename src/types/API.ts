@@ -1,3 +1,4 @@
+import { SensorConfig } from "./sensors";
 import {
   AuthResponse,
   AuthUser,
@@ -9,6 +10,7 @@ declare global {
   interface Window {
     electronAPI: {
       users: UserAPI;
+      sensor: SensorAPI;
     };
   }
 }
@@ -22,4 +24,8 @@ export interface UserAPI {
     currentPassword: string,
     newPassword: string
   ) => Promise<AuthResponse>;
+}
+
+export interface SensorAPI {
+  read: (config: SensorConfig) => Promise<number | string>;
 }

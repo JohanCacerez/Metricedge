@@ -1,11 +1,12 @@
 import { create } from "zustand";
-import { DataSensor } from "../types/sensors";
+import { DataSensor, SensorConfig } from "../types/sensors";
 
 interface SensorState {
   activeSensor1: DataSensor | null;
   activeSensor2: DataSensor | null;
   setConfigSensor1: (dataSensor: DataSensor) => void;
   setConfigSensor2: (dataSensor: DataSensor) => void;
+  read: (config: SensorConfig) => Promise<number | string>;
 }
 
 export const useSensorStore = create<SensorState>((set) => ({
@@ -18,5 +19,8 @@ export const useSensorStore = create<SensorState>((set) => ({
   setConfigSensor2: (dataSensor: DataSensor) => {
     localStorage.setItem("sensor2", JSON.stringify(dataSensor));
     set({ activeSensor2: dataSensor });
+  },
+  read: async (config: SensorConfig) => {
+    return window.electronAPI.sensor.read(config);
   },
 }));
