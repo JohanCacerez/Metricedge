@@ -174,10 +174,14 @@ function registerUserHandlers() {
 }
 const basePath = app.getPath("userData");
 const sensorPath = join(basePath, "simulacion.py");
-const readSensor = async ({ port, mm, device, zero }) => {
+const readSensor = async ({ port, mm, zero, device }) => {
+  console.log("puerto", port);
+  console.log("mm", mm);
+  console.log("device", device);
+  console.log("zero", zero);
   return new Promise((resolve) => {
     exec(
-      `py "${sensorPath}" ${port} ${mm} ${device} ${zero}`,
+      `py "${sensorPath}" ${port} ${mm} ${zero} ${device} `,
       (error, stdout, stderr) => {
         if (error) {
           resolve(`Error: ${error.message}`);
@@ -186,6 +190,7 @@ const readSensor = async ({ port, mm, device, zero }) => {
         } else {
           const match = stdout.match(/Lectura:\s*([\d.]+)/);
           if (match) {
+            console.log(match[1]);
             resolve(match[1]);
           } else {
             resolve(stdout.trim());

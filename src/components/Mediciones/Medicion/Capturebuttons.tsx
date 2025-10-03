@@ -31,7 +31,10 @@ export default function Capturebuttons({ captureRef }: CaptureButtonsProps) {
         Medir
       </button>
 
-      <button className="bg-orange-600 hover:bg-orange-700 rounded-2xl text-text font-ui font-bold text-2xl cursor-pointer flex-1">
+      <button
+        className="bg-orange-600 hover:bg-orange-700 rounded-2xl text-text font-ui font-bold text-2xl cursor-pointer flex-1"
+        onClick={() => captureRef.current?.setZeroCurrentInput()}
+      >
         Establecer 0
       </button>
 

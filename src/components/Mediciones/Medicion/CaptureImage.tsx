@@ -33,31 +33,44 @@ const modelInputs: Record<
 export interface CaptureImageRef {
   captureCurrentValue: () => void;
   resetInputs: () => void;
-  getCapturedMeasurements: () => number[];
+  getCapturedMeasurements: () => (string | number)[];
+  setZeroCurrentInput: () => void;
 }
 
 const CaptureImage = forwardRef<CaptureImageRef>((_props, ref) => {
   const { activeModel } = useModelStore();
   const { activeSensor1, activeSensor2, read } = useSensorStore();
-
   const inputs = activeModel?.id ? modelInputs[activeModel.id] || [] : [];
   const [values, setValues] = useState<string[]>(inputs.map(() => ""));
   const [activeIndex, setActiveIndex] = useState(0);
   const [currentSensor, setCurrentSensor] = useState(1);
-  const [capturedMeasurements, setCapturedMeasurements] = useState<number[]>(
-    []
-  );
+  const [capturedMeasurements, setCapturedMeasurements] = useState<
+    (string | number)[]
+  >([]);
+  const [zero, setZero] = useState<number[]>(inputs.map(() => 0));
 
+  // Función que lee el sensor y actualiza el input activo
   const updateSensorReading = async () => {
     if (!inputs.length) return;
-    const sensor = currentSensor === 1 ? activeSensor1 : activeSensor2;
+
+    // Determinar sensor correcto según input y modelo
+    let sensor = currentSensor === 1 ? activeSensor1 : activeSensor2;
+
+    if (
+      (activeModel?.id === "rear-lh" || activeModel?.id === "rear-rh") &&
+      activeIndex === 3
+    ) {
+      sensor = activeSensor2;
+      setCurrentSensor(2); // actualizar el estado para mantener coherencia
+    }
+
     if (!sensor) return;
 
     const result = await read({
       port: sensor.puerto.toString(),
       mm: sensor.tamaño,
       device: sensor.dispositivo.toString(),
-      zero: 0,
+      zero: zero[activeIndex] || 0,
     });
 
     setValues((prev) =>
@@ -65,29 +78,56 @@ const CaptureImage = forwardRef<CaptureImageRef>((_props, ref) => {
     );
   };
 
-  useEffect(() => {
-    const interval = setInterval(updateSensorReading, 1000);
-    return () => clearInterval(interval);
-  }, [activeSensor1, activeSensor2, activeIndex, currentSensor]);
+  const setZeroCurrentInput = () => {
+    const currentValue = Number(values[activeIndex]) || 0; // toma el valor actual del input
+    setZero((prev) => {
+      const newZeros = [...prev];
+      newZeros[activeIndex] = currentValue; // lo guardamos como cero
+      console.log("Zero actualizado:", newZeros[activeIndex]);
+      return newZeros;
+    });
+  };
 
-  const captureCurrentValue = () => {
+  // Leer sensor cada 500 milisegundos
+  useEffect(() => {
+    const interval = setInterval(updateSensorReading, 500);
+    return () => clearInterval(interval);
+  }, [activeSensor1, activeSensor2, activeIndex, currentSensor, zero]);
+
+  const captureCurrentValue = async () => {
     if (activeIndex >= inputs.length) return;
 
-    // Capturar el valor actual en el array
-    const value = Number(values[activeIndex]);
-    setCapturedMeasurements((prev) => {
-      const newMeasurements = [...prev];
-      newMeasurements[activeIndex] = value;
-      return newMeasurements;
-    });
+    // Determinar sensor correcto
+    let sensor = currentSensor === 1 ? activeSensor1 : activeSensor2;
 
-    // Cambiar a sensor 2 si estamos en rear y en el 4to input
+    // Si estamos en rear y es el 4to input, usar sensor2
     if (
       (activeModel?.id === "rear-lh" || activeModel?.id === "rear-rh") &&
       activeIndex === 3
     ) {
+      sensor = activeSensor2;
       setCurrentSensor(2);
     }
+
+    if (!sensor) return;
+
+    const result = await read({
+      port: sensor.puerto.toString(),
+      mm: sensor.tamaño,
+      device: sensor.dispositivo.toString(),
+      zero: zero[activeIndex] || 0,
+    });
+
+    // Guardar valor en el input y en las mediciones
+    setValues((prev) =>
+      prev.map((v, i) => (i === activeIndex ? result.toString() : v))
+    );
+
+    setCapturedMeasurements((prev) => {
+      const newMeasurements = [...prev];
+      newMeasurements[activeIndex] = result; // puede ser string o número
+      return newMeasurements;
+    });
 
     // Avanzar al siguiente input
     setActiveIndex((prev) => Math.min(prev + 1, inputs.length - 1));
@@ -100,8 +140,10 @@ const CaptureImage = forwardRef<CaptureImageRef>((_props, ref) => {
       setActiveIndex(0);
       setCurrentSensor(1);
       setCapturedMeasurements([]);
+      setZero(inputs.map(() => 0));
     },
     getCapturedMeasurements: () => capturedMeasurements,
+    setZeroCurrentInput,
   }));
 
   return (
