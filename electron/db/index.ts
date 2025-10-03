@@ -31,7 +31,7 @@ db.exec(`
     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     medida1 REAL NOT NULL,
     medida2 REAL NOT NULL,
-    medida3 REAL,
+    medida3 REAL NOT NULL,
     medida4 REAL,
     FOREIGN KEY (user_id) REFERENCES users(id)
   );
