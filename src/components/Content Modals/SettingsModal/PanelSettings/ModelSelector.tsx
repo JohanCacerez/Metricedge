@@ -9,24 +9,28 @@ const models: Model[] = [
     name: "REAR LH",
     np_saargumi: "DA17677",
     np_client: "5A79965",
+    photo: "./models/rearlh.png",
   },
   {
     id: "rear-rh",
     name: "REAR RH",
     np_saargumi: "DA17676",
     np_client: "5A79966",
+    photo: "./models/rearrh.png",
   },
   {
     id: "front-lh",
     name: "FRONT LH",
     np_saargumi: "DA17671",
     np_client: "5A79963",
+    photo: "./models/frontlh.png",
   },
   {
     id: "front-rh",
     name: "FRONT RH",
     np_saargumi: "DA17670",
     np_client: "5A79964",
+    photo: "./models/frontrh.png",
   },
 ];
 
