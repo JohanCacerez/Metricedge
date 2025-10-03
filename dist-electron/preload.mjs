@@ -11,5 +11,8 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
       currentPassword,
       newPassword
     )
+  },
+  sensor: {
+    read: (config) => electron.ipcRenderer.invoke("sensor:read", config)
   }
 });

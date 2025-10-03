@@ -18,7 +18,13 @@ export const readSensor = async ({ port, mm, device, zero }: SensorConfig) => {
         } else if (stderr) {
           resolve(`Error: ${stderr}`);
         } else {
-          resolve(Number(stdout));
+          // Extraemos solo el valor de la lectura como texto
+          const match = stdout.match(/Lectura:\s*([\d.]+)/);
+          if (match) {
+            resolve(match[1]); // texto del número
+          } else {
+            resolve(stdout.trim()); // cualquier otro texto
+          }
         }
       }
     );

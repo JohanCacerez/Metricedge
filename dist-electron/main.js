@@ -2,7 +2,8 @@ import { app, ipcMain, BrowserWindow } from "electron";
 import { fileURLToPath } from "node:url";
 import path$1 from "node:path";
 import { createRequire } from "module";
-import path from "path";
+import path, { join } from "path";
+import { exec } from "child_process";
 const require$1 = createRequire(import.meta.url);
 const Database = require$1("better-sqlite3");
 const bcrypt$1 = require$1("bcrypt");
@@ -171,6 +172,34 @@ function registerUserHandlers() {
     (_e, idUser, currentPassword, newPassword) => changePassword(idUser, currentPassword, newPassword)
   );
 }
+const basePath = app.getPath("userData");
+const sensorPath = join(basePath, "simulacion.py");
+const readSensor = async ({ port, mm, device, zero }) => {
+  return new Promise((resolve) => {
+    exec(
+      `py "${sensorPath}" ${port} ${mm} ${device} ${zero}`,
+      (error, stdout, stderr) => {
+        if (error) {
+          resolve(`Error: ${error.message}`);
+        } else if (stderr) {
+          resolve(`Error: ${stderr}`);
+        } else {
+          const match = stdout.match(/Lectura:\s*([\d.]+)/);
+          if (match) {
+            resolve(match[1]);
+          } else {
+            resolve(stdout.trim());
+          }
+        }
+      }
+    );
+  });
+};
+function registerSensorHandlers() {
+  ipcMain.handle("sensor:read", (_e, config) => {
+    return readSensor(config);
+  });
+}
 const __dirname = path$1.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path$1.join(__dirname, "..");
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
@@ -207,6 +236,7 @@ app.on("activate", () => {
 });
 app.whenReady().then(() => {
   registerUserHandlers();
+  registerSensorHandlers();
   createWindow();
 });
 export {
