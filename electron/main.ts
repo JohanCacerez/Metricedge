@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, screen } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import "./db/index";
@@ -18,8 +18,16 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 let win: BrowserWindow | null;
 
 function createWindow() {
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   win = new BrowserWindow({
     icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    width, // ancho de la pantalla
+    height, // alto de la pantalla
+    resizable: false, // no se puede cambiar el tamaño
+    minimizable: false, // no se puede minimizar
+    maximizable: false, // no se puede maximizar
+    frame: true, // mantiene los botones nativos
+    autoHideMenuBar: true, // oculta barra de menú (Edit, View, etc.)
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
     },

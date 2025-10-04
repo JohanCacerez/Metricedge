@@ -44,7 +44,7 @@ export default function Capturebuttons({ captureRef }: CaptureButtonsProps) {
       captureRef.current?.resetInputs();
       toast.success("Mediciones guardadas con éxito.");
     } catch (error) {
-      toast.error("Error al guardar las mediciones.");
+      toast.error(`Error al guardar las mediciones: ${error}`);
     }
   };
 

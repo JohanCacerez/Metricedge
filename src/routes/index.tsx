@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 
 import Dashboard from "../pages/Dashboard/Index";
@@ -7,7 +7,7 @@ import NotFound from "../pages/NotFound";
 
 export default function AppRoutes() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         {/* Todas las rutas pasan por el MainLayout */}
         <Route element={<MainLayout />}>
@@ -18,6 +18,6 @@ export default function AppRoutes() {
         {/* Fallback */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }

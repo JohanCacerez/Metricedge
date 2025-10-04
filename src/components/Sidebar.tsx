@@ -11,6 +11,9 @@ import { SettingsModal } from "./Content Modals/SettingsModal/SettingsModal";
 
 import { useModelStore } from "../store/modelStore";
 
+import BMW_Logo from "../assets/BMW_logo.png";
+import CogaLogo from "../assets/COGATEC.png";
+
 interface SidebarProps {
   userName: string;
 }
@@ -35,7 +38,7 @@ export const Sidebar = ({ userName }: SidebarProps) => {
     <aside className="h-screen w-64 bg-surface text-text font-body flex flex-col">
       {/* Usuario y ajustes */}
       <div className="flex flex-col items-center justify-between p-4 border-b border-border">
-        <img src="./COGATEC.png" alt="coga" />
+        <img src={CogaLogo} alt="coga" />
       </div>
       <div className="flex w-full p-4 items-center border-b border-border justify-between">
         <div className="text-lg font-body">{userName}</div>
@@ -79,7 +82,7 @@ export const Sidebar = ({ userName }: SidebarProps) => {
       </div>
 
       <div className="p-4 flex justify-center">
-        <img src="/BMW_logo.png" alt="logo BMW" width={100} height={100} />
+        <img src={BMW_Logo} alt="logo BMW" width={100} height={100} />
       </div>
 
       {/* Cerrar sesión */}

@@ -1,8 +1,24 @@
 {
   "name": "metricedge",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
+  "build": {
+    "appId": "com.cogatec.metricedge",
+    "productName": "Metricedge",
+    "files": [
+      "dist-electron/**/*",
+      "dist/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "win": {
+      "target": "nsis"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",

@@ -6,7 +6,7 @@ import { SensorConfig } from "../../src/types/sensors";
 
 const basePath = app.getPath("userData");
 
-const sensorPath = join(basePath, "simulacion.py");
+const sensorPath = join(basePath, "script.py");
 
 export const readSensor = async ({ port, mm, zero, device }: SensorConfig) => {
   return new Promise<number | string>((resolve) => {
@@ -15,8 +15,10 @@ export const readSensor = async ({ port, mm, zero, device }: SensorConfig) => {
       (error, stdout, stderr) => {
         if (error) {
           resolve(`Error: ${error.message}`);
+          console.log(error.message);
         } else if (stderr) {
           resolve(`Error: ${stderr}`);
+          console.log(stderr);
         } else {
           // Extraemos solo el valor de la lectura como texto
           const match = stdout.match(/Lectura:\s*([\d.]+)/);

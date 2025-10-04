@@ -3,34 +3,39 @@ import { useModelStore } from "../../../../store/modelStore";
 import { Model } from "../../../../types/model";
 import { toast } from "sonner";
 
+import rearlh from "../../../../assets/models/rearlh.png";
+import rearrh from "../../../../assets/models/rearrh.png";
+import frontlh from "../../../../assets/models/frontlh.png";
+import frontrh from "../../../../assets/models/frontrh.png";
+
 const models: Model[] = [
   {
     id: "rear-lh",
     name: "REAR LH",
     np_saargumi: "DA17677",
     np_client: "5A79965",
-    photo: "./models/rearlh.png",
+    photo: rearlh,
   },
   {
     id: "rear-rh",
     name: "REAR RH",
     np_saargumi: "DA17676",
     np_client: "5A79966",
-    photo: "./models/rearrh.png",
+    photo: rearrh,
   },
   {
     id: "front-lh",
     name: "FRONT LH",
     np_saargumi: "DA17671",
     np_client: "5A79963",
-    photo: "./models/frontlh.png",
+    photo: frontlh,
   },
   {
     id: "front-rh",
     name: "FRONT RH",
     np_saargumi: "DA17670",
     np_client: "5A79964",
-    photo: "./models/frontrh.png",
+    photo: frontrh,
   },
 ];
 

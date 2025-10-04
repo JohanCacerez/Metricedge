@@ -21,6 +21,6 @@ export function saveMeasurements(measurement: Measurement) {
     return { success: true, message: "Mediciones guardadas con éxito" };
   } catch (error) {
     console.error("Error al guardar las mediciones:", error);
-    return { success: false, message: "Error al guardar las mediciones" };
+    return { success: false, message: error };
   }
 }

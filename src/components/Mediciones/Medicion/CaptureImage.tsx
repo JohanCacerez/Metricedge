@@ -7,27 +7,56 @@ const modelInputs: Record<
   { top: string; left: string; placeholder: string }[]
 > = {
   "front-lh": [
-    { top: "30%", left: "25%", placeholder: "Input 1" },
-    { top: "30%", left: "55%", placeholder: "Input 2" },
-    { top: "27%", left: "72%", placeholder: "Input 3" },
+    { top: "12%", left: "17%", placeholder: "F7" },
+    { top: "30%", left: "60%", placeholder: "F6" },
+    { top: "12%", left: "72%", placeholder: "F1" },
   ],
   "front-rh": [
-    { top: "30%", left: "25%", placeholder: "Input 1" },
-    { top: "30%", left: "55%", placeholder: "Input 2" },
-    { top: "27%", left: "72%", placeholder: "Input 3" },
+    { top: "12%", left: "75%", placeholder: "F7" },
+    { top: "30%", left: "33%", placeholder: "F6" },
+    { top: "12%", left: "20%", placeholder: "F1" },
   ],
   "rear-lh": [
-    { top: "30%", left: "25%", placeholder: "Input 1" },
-    { top: "30%", left: "55%", placeholder: "Input 2" },
-    { top: "27%", left: "72%", placeholder: "Input 3" },
-    { top: "40%", left: "40%", placeholder: "Input 4" },
+    { top: "30%", left: "50%", placeholder: "F14" },
+    { top: "30%", left: "27%", placeholder: "F15" },
+    { top: "30%", left: "16%", placeholder: "F1" },
+    { top: "75%", left: "77%", placeholder: "F8" },
   ],
   "rear-rh": [
-    { top: "30%", left: "25%", placeholder: "Input 1" },
-    { top: "30%", left: "55%", placeholder: "Input 2" },
-    { top: "27%", left: "72%", placeholder: "Input 3" },
-    { top: "40%", left: "40%", placeholder: "Input 4" },
+    { top: "30%", left: "43%", placeholder: "F14" },
+    { top: "30%", left: "65%", placeholder: "F15" },
+    { top: "27%", left: "75%", placeholder: "F1" },
+    { top: "75%", left: "16%", placeholder: "F8" },
   ],
+};
+
+// Tolerancias por modelo y por input
+const inputTolerances: Record<
+  string,
+  Record<string, { min: number; max: number }>
+> = {
+  "front-lh": {
+    F7: { min: 232.1, max: 233.9 },
+    F6: { min: 749.5, max: 752.5 },
+    F1: { min: 1246, max: 1250 },
+  },
+  "front-rh": {
+    F7: { min: 232.1, max: 233.9 },
+    F6: { min: 749.5, max: 752.5 },
+    F1: { min: 1246, max: 1250 },
+  },
+  "rear-lh": {
+    F14: { min: 256.1, max: 257.9 },
+    F15: { min: 393.5, max: 396.5 },
+    F1: { min: 738, max: 742 },
+    F8: { min: 491, max: 495 },
+  },
+  "rear-rh": {
+    F14: { min: 256.1, max: 257.9 },
+    F15: { min: 393.5, max: 396.5 },
+    F1: { min: 738, max: 742 },
+    F8: { min: 491, max: 495 },
+  },
 };
 
 export interface CaptureImageRef {
@@ -41,6 +70,7 @@ const CaptureImage = forwardRef<CaptureImageRef>((_props, ref) => {
   const { activeModel } = useModelStore();
   const { activeSensor1, activeSensor2, read } = useSensorStore();
   const inputs = activeModel?.id ? modelInputs[activeModel.id] || [] : [];
+
   const [values, setValues] = useState<string[]>(inputs.map(() => ""));
   const [activeIndex, setActiveIndex] = useState(0);
   const [currentSensor, setCurrentSensor] = useState(1);
@@ -48,16 +78,28 @@ const CaptureImage = forwardRef<CaptureImageRef>((_props, ref) => {
     (string | number)[]
   >([]);
   const [zero, setZero] = useState<number[]>(inputs.map(() => 0));
+  const [lastValidValues, setLastValidValues] = useState<(string | number)[]>(
+    inputs.map(() => "")
+  );
 
-  // Función que lee el sensor y actualiza el input activo
+  // Helper: valida si es un número o no
+  const sanitizeReading = (
+    reading: string | number,
+    fallback: string | number
+  ) => {
+    const num = Number(reading);
+    if (isNaN(num)) {
+      console.warn("Lectura inválida, usando último valor válido");
+      return fallback;
+    }
+    return num;
+  };
+
+  // Función para actualizar el valor del sensor
   const updateSensorReading = async () => {
-    if (!inputs.length) return;
-
-    // Si ya medimos todos los inputs, no hacer nada
-    if (activeIndex >= inputs.length) return;
+    if (!inputs.length || activeIndex >= inputs.length) return;
 
     let sensor = currentSensor === 1 ? activeSensor1 : activeSensor2;
-
     if (
       (activeModel?.id === "rear-lh" || activeModel?.id === "rear-rh") &&
       activeIndex === 3
@@ -66,17 +108,27 @@ const CaptureImage = forwardRef<CaptureImageRef>((_props, ref) => {
       setCurrentSensor(2);
     }
 
-    if (!sensor) return;
+    if (!sensor || capturedMeasurements[activeIndex] !== undefined) return;
 
-    // Solo actualizar si no hay valor capturado
-    if (capturedMeasurements[activeIndex] !== undefined) return;
+    let result: string | number;
+    try {
+      result = await read({
+        port: sensor.puerto.toString(),
+        mm: sensor.tamaño,
+        device: sensor.dispositivo.toString(),
+        zero: zero[activeIndex] || 0,
+      });
 
-    const result = await read({
-      port: sensor.puerto.toString(),
-      mm: sensor.tamaño,
-      device: sensor.dispositivo.toString(),
-      zero: zero[activeIndex] || 0,
-    });
+      result = sanitizeReading(result, lastValidValues[activeIndex]);
+      setLastValidValues((prev) => {
+        const newVals = [...prev];
+        newVals[activeIndex] = result;
+        return newVals;
+      });
+    } catch (err) {
+      console.warn("Sensor error, usando último valor válido:", err);
+      result = lastValidValues[activeIndex];
+    }
 
     setValues((prev) =>
       prev.map((v, i) => (i === activeIndex ? result.toString() : v))
@@ -84,18 +136,17 @@ const CaptureImage = forwardRef<CaptureImageRef>((_props, ref) => {
   };
 
   const setZeroCurrentInput = () => {
-    const currentValue = Number(values[activeIndex]) || 0; // toma el valor actual del input
+    const currentValue = Number(values[activeIndex]) || 0;
     setZero((prev) => {
       const newZeros = [...prev];
-      newZeros[activeIndex] = currentValue; // lo guardamos como cero
-      console.log("Zero actualizado:", newZeros[activeIndex]);
+      newZeros[activeIndex] = currentValue;
       return newZeros;
     });
   };
 
-  // Leer sensor cada 500 milisegundos
+  // Leer sensor cada segundo
   useEffect(() => {
-    const interval = setInterval(updateSensorReading, 500);
+    const interval = setInterval(updateSensorReading, 1000);
     return () => clearInterval(interval);
   }, [
     activeSensor1,
@@ -104,15 +155,13 @@ const CaptureImage = forwardRef<CaptureImageRef>((_props, ref) => {
     currentSensor,
     zero,
     capturedMeasurements,
+    lastValidValues,
   ]);
 
   const captureCurrentValue = async () => {
     if (activeIndex >= inputs.length) return;
 
-    // Determinar sensor correcto
     let sensor = currentSensor === 1 ? activeSensor1 : activeSensor2;
-
-    // Si estamos en rear y es el 4to input, usar sensor2
     if (
       (activeModel?.id === "rear-lh" || activeModel?.id === "rear-rh") &&
       activeIndex === 3
@@ -120,29 +169,50 @@ const CaptureImage = forwardRef<CaptureImageRef>((_props, ref) => {
       sensor = activeSensor2;
       setCurrentSensor(2);
     }
-
     if (!sensor) return;
 
-    const result = await read({
-      port: sensor.puerto.toString(),
-      mm: sensor.tamaño,
-      device: sensor.dispositivo.toString(),
-      zero: zero[activeIndex] || 0,
-    });
+    let result: string | number;
+    try {
+      result = await read({
+        port: sensor.puerto.toString(),
+        mm: sensor.tamaño,
+        device: sensor.dispositivo.toString(),
+        zero: zero[activeIndex] || 0,
+      });
 
-    // Guardar valor en el input y en las mediciones
+      result = sanitizeReading(result, lastValidValues[activeIndex]);
+      setLastValidValues((prev) => {
+        const newVals = [...prev];
+        newVals[activeIndex] = result;
+        return newVals;
+      });
+    } catch (err) {
+      console.warn(
+        "Sensor error al capturar, usando último valor válido:",
+        err
+      );
+      result = lastValidValues[activeIndex];
+    }
+
     setValues((prev) =>
       prev.map((v, i) => (i === activeIndex ? result.toString() : v))
     );
-
     setCapturedMeasurements((prev) => {
       const newMeasurements = [...prev];
-      newMeasurements[activeIndex] = result; // puede ser string o número
+      newMeasurements[activeIndex] = result;
       return newMeasurements;
     });
-
-    // Avanzar al siguiente input
     setActiveIndex((prev) => Math.min(prev + 1, inputs.length - 1));
+  };
+
+  // Determinar color del input según tolerancia
+  const getInputClass = (index: number, placeholder: string) => {
+    const val = Number(values[index]);
+    if (!activeModel || isNaN(val)) return "border-gray-500";
+    const tolerance = inputTolerances[activeModel.id]?.[placeholder];
+    if (!tolerance) return "border-gray-500";
+    if (val >= tolerance.min && val <= tolerance.max) return "border-green-500";
+    return "border-red-500";
   };
 
   useImperativeHandle(ref, () => ({
@@ -153,6 +223,7 @@ const CaptureImage = forwardRef<CaptureImageRef>((_props, ref) => {
       setCurrentSensor(1);
       setCapturedMeasurements([]);
       setZero(inputs.map(() => 0));
+      setLastValidValues(inputs.map(() => ""));
     },
     getCapturedMeasurements: () => capturedMeasurements,
     setZeroCurrentInput,
@@ -169,8 +240,10 @@ const CaptureImage = forwardRef<CaptureImageRef>((_props, ref) => {
         <input
           key={index}
           type="text"
-          className={`absolute bg-gray-600 border rounded px-2 py-1 ${
-            index === activeIndex ? "border-yellow-400" : ""
+          className={`absolute w-16 bg-gray-600 border rounded px-2 py-1 ${
+            index === activeIndex
+              ? "border-yellow-400"
+              : getInputClass(index, input.placeholder)
           }`}
           style={{ top: input.top, left: input.left }}
           placeholder={input.placeholder}

@@ -28,7 +28,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     modelo_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
-    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha TIMESTAMP DEFAULT (datetime('now','localtime')),
     medida1 REAL NOT NULL,
     medida2 REAL NOT NULL,
     medida3 REAL NOT NULL,
