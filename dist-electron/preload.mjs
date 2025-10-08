@@ -1,1 +1,26 @@
-"use strict";const r=require("electron");r.contextBridge.exposeInMainWorld("electronAPI",{users:{auth:e=>r.ipcRenderer.invoke("users:auth",e),create:e=>r.ipcRenderer.invoke("users:create",e),delete:e=>r.ipcRenderer.invoke("users:delete",e),changePassword:(e,a,t)=>r.ipcRenderer.invoke("users:changePassword",e,a,t)},sensor:{read:e=>r.ipcRenderer.invoke("sensor:read",e)},measurements:{save:e=>r.ipcRenderer.invoke("measurements:save",e)},chart:{getGroupedStats:(e,a,t)=>r.ipcRenderer.invoke("chart:getGroupedStats",e,a,t),filtrarPorMedida:(e,a)=>r.ipcRenderer.invoke("chart:filtrarPorMedida",e,a),calcDataForChart:(e,a,t)=>r.ipcRenderer.invoke("chart:calcDataForChart",e,a,t)}});
+"use strict";
+const electron = require("electron");
+electron.contextBridge.exposeInMainWorld("electronAPI", {
+  users: {
+    auth: (credentials) => electron.ipcRenderer.invoke("users:auth", credentials),
+    create: (credentials) => electron.ipcRenderer.invoke("users:create", credentials),
+    delete: (username) => electron.ipcRenderer.invoke("users:delete", username),
+    changePassword: (idUser, currentPassword, newPassword) => electron.ipcRenderer.invoke(
+      "users:changePassword",
+      idUser,
+      currentPassword,
+      newPassword
+    )
+  },
+  sensor: {
+    read: (config) => electron.ipcRenderer.invoke("sensor:read", config)
+  },
+  measurements: {
+    save: (measurement) => electron.ipcRenderer.invoke("measurements:save", measurement)
+  },
+  chart: {
+    getGroupedStats: (model, startDate, endDate) => electron.ipcRenderer.invoke("chart:getGroupedStats", model, startDate, endDate),
+    filtrarPorMedida: (datos, medida) => electron.ipcRenderer.invoke("chart:filtrarPorMedida", datos, medida),
+    calcDataForChart: (datos, LSE, LIE) => electron.ipcRenderer.invoke("chart:calcDataForChart", datos, LSE, LIE)
+  }
+});

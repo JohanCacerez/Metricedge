@@ -12,6 +12,7 @@ import {
 import { MedidaData } from "../../types/chart";
 
 import { useChartStore } from "../../store/chart";
+import { useModelStore } from "../../store/modelStore";
 
 export function MetricChart({
   width,
@@ -34,6 +35,7 @@ export function MetricChart({
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const { refreshKey } = useChartStore();
+  const { activeModel } = useModelStore();
 
   const fetchData = async () => {
     try {
@@ -73,7 +75,7 @@ export function MetricChart({
 
   useEffect(() => {
     fetchData();
-  }, [refreshKey, LSE, LIE, startDate, endDate]);
+  }, [refreshKey, activeModel, LSE, LIE, startDate, endDate]);
 
   if (!datosMedida1 || !stats) return <div>Cargando...</div>;
 
