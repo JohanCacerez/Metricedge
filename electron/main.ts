@@ -7,6 +7,10 @@ import { registerSensorHandlers } from "./db/controllers/sensor";
 import { registerMeasurementHandlers } from "./db/controllers/measurement";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+//test
+// test de mediciones agrupadas
+//import { getGroupedStats } from "./service/chart";
+
 process.env.APP_ROOT = path.join(__dirname, "..");
 export const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 export const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
@@ -59,6 +63,9 @@ app.on("activate", () => {
 
 // ✅ Registrar handlers antes de crear ventanas
 app.whenReady().then(() => {
+  // Test de mediciones agrupadas
+  /* const resultados = getGroupedStats("front-lh");
+  console.log(JSON.stringify(resultados, null, 2)); */
   registerUserHandlers();
   registerSensorHandlers();
   registerMeasurementHandlers();
