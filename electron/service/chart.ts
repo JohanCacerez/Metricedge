@@ -7,6 +7,7 @@ export function getGroupedStats(modeloId: string): MedidaData[] {
   const posiblesMedidas = ["medida1", "medida2", "medida3", "medida4"];
   const medidasValidas: string[] = [];
 
+  // Detectamos qué medidas tienen datos
   for (const medida of posiblesMedidas) {
     const row = db
       .prepare(
@@ -23,6 +24,7 @@ export function getGroupedStats(modeloId: string): MedidaData[] {
 
   const resultados: MedidaData[] = [];
 
+  // Recorremos cada medida válida
   for (const medida of medidasValidas) {
     const rows: { valor: number }[] = db
       .prepare(
@@ -33,20 +35,24 @@ export function getGroupedStats(modeloId: string): MedidaData[] {
       )
       .all(modeloId);
 
+    // Agrupamos en grupos de 5
     for (let i = 0; i < rows.length; i += 5) {
-      const grupo: number[] = rows.slice(i, i + 5).map((r) => r.valor);
+      const grupo: number[] = rows.slice(i, i + 5).map((r) => Number(r.valor));
 
       if (grupo.length === 0) continue;
 
-      const prom =
-        grupo.reduce((a: number, b: number) => a + b, 0) / grupo.length;
+      // Log para ver los números exactos de cada grupo
+      console.log(`Grupo ${Math.floor(i / 5) + 1} de ${medida}:`, grupo);
+
+      const prom = grupo.reduce((a, b) => a + b, 0) / grupo.length;
       const rango = Math.max(...grupo) - Math.min(...grupo);
 
       resultados.push({
         medida,
         grupo: Math.floor(i / 5) + 1,
-        prom: Number(prom.toFixed(3)),
-        rango: Number(rango.toFixed(3)),
+        prom: prom,
+        rango: rango,
+        numeros: grupo, // <-- agregamos los números exactos
       });
     }
   }
@@ -62,45 +68,49 @@ export function filtrarPorMedida(
   return datos.filter((item) => item.medida === medida);
 }
 
-//funcion para calcular datos para graficar
+//funcion para calcular datos para graficar (corregida)
 export function calcDataForChart(
   datos: MedidaData[],
   LSE: number,
   LIE: number
 ) {
   if (datos.length === 0) return null;
-  //Xmed = promedio de los promedios
-  const sumaPromedios = datos.reduce((acc, item) => acc + item.prom, 0);
-  const Xmed = sumaPromedios / datos.length;
 
-  //Rmed = promedio de los rangos
-  const sumaRangos = datos.reduce((acc, item) => acc + item.rango, 0);
-  const Rmed = sumaRangos / datos.length;
+  // Obtener todos los números de todas las mediciones
+  const todosLosNumeros = datos.flatMap((item) => item.numeros);
 
-  //Xmed =  LIC, LSC
+  // Promedio de todas las mediciones
+  const Xmed =
+    todosLosNumeros.reduce((a, b) => a + b, 0) / todosLosNumeros.length;
+
+  // Rango medio (promedio de rangos de cada grupo)
+  const Rmed = datos.reduce((acc, item) => acc + item.rango, 0) / datos.length;
+
+  // Xmed => LIC y LSC
   let LSCX = Xmed + 0.577 * Rmed;
   LSCX = LSCX + 0.00002 * LSCX;
+
   let LICX = Xmed - 0.577 * Rmed;
   LICX = LICX - 0.00002 * LICX;
 
-  //Rmed = LSC
+  // Rmed => LSC de la variabilidad
   const LSCR = 2.114 * Rmed;
 
-  //Sigma
+  // Sigma
   const sigma = Rmed / 2.326;
 
-  //CPK
+  // CPK
   const CPK = Math.min((LSE - Xmed) / (3 * sigma), (Xmed - LIE) / (3 * sigma));
 
-  //CP
+  // CP
   const CP = (LSE - LIE) / (6 * sigma);
 
   return {
-    LSCX,
-    LICX,
-    LSCR,
-    CPK,
-    sigma,
-    CP,
+    LSCX: Number(LSCX.toFixed(2)),
+    LICX: Number(LICX.toFixed(2)),
+    LSCR: Number(LSCR.toFixed(3)),
+    CPK: Number(CPK.toFixed(2)),
+    sigma: Number(sigma.toFixed(4)),
+    CP: Number(CP.toFixed(2)),
   };
 }

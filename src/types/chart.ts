@@ -3,4 +3,5 @@ export interface MedidaData {
   grupo: number;
   prom: number;
   rango: number;
+  numeros: number[];
 }

@@ -1,3 +1,9 @@
+import MetricChart from "../../components/Charts/MetricChart";
+
 export default function Index() {
-  return <div>Dashboard</div>;
+  return (
+    <div className="flex flex-col h-full text-text">
+      <MetricChart />
+    </div>
+  );
 }

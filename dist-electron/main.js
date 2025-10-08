@@ -250,19 +250,64 @@ function getGroupedStats(modeloId) {
          ORDER BY fecha ASC`
     ).all(modeloId);
     for (let i = 0; i < rows.length; i += 5) {
-      const grupo = rows.slice(i, i + 5).map((r) => r.valor);
+      const grupo = rows.slice(i, i + 5).map((r) => Number(r.valor));
       if (grupo.length === 0) continue;
+      console.log(`Grupo ${Math.floor(i / 5) + 1} de ${medida}:`, grupo);
       const prom = grupo.reduce((a, b) => a + b, 0) / grupo.length;
       const rango = Math.max(...grupo) - Math.min(...grupo);
       resultados.push({
         medida,
         grupo: Math.floor(i / 5) + 1,
-        prom: Number(prom.toFixed(3)),
-        rango: Number(rango.toFixed(3))
+        prom,
+        rango,
+        numeros: grupo
+        // <-- agregamos los números exactos
       });
     }
   }
   return resultados;
+}
+function filtrarPorMedida(datos, medida) {
+  return datos.filter((item) => item.medida === medida);
+}
+function calcDataForChart(datos, LSE, LIE) {
+  if (datos.length === 0) return null;
+  const todosLosNumeros = datos.flatMap((item) => item.numeros);
+  const Xmed = todosLosNumeros.reduce((a, b) => a + b, 0) / todosLosNumeros.length;
+  const Rmed = datos.reduce((acc, item) => acc + item.rango, 0) / datos.length;
+  let LSCX = Xmed + 0.577 * Rmed;
+  LSCX = LSCX + 2e-5 * LSCX;
+  let LICX = Xmed - 0.577 * Rmed;
+  LICX = LICX - 2e-5 * LICX;
+  const LSCR = 2.114 * Rmed;
+  const sigma = Rmed / 2.326;
+  const CPK = Math.min((LSE - Xmed) / (3 * sigma), (Xmed - LIE) / (3 * sigma));
+  const CP = (LSE - LIE) / (6 * sigma);
+  return {
+    LSCX: Number(LSCX.toFixed(2)),
+    LICX: Number(LICX.toFixed(2)),
+    LSCR: Number(LSCR.toFixed(3)),
+    CPK: Number(CPK.toFixed(2)),
+    sigma: Number(sigma.toFixed(4)),
+    CP: Number(CP.toFixed(2))
+  };
+}
+function registerChartHandlers() {
+  ipcMain.handle("chart:getGroupedStats", async (_e, model) => {
+    return await getGroupedStats(model);
+  });
+  ipcMain.handle(
+    "chart:filtrarPorMedida",
+    async (_e, datos, medida) => {
+      return await filtrarPorMedida(datos, medida);
+    }
+  );
+  ipcMain.handle(
+    "chart:calcDataForChart",
+    async (_e, datos, LSE, LIE) => {
+      return await calcDataForChart(datos, LSE, LIE);
+    }
+  );
 }
 const __dirname = path$1.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path$1.join(__dirname, "..");
@@ -314,11 +359,10 @@ app.on("activate", () => {
   }
 });
 app.whenReady().then(() => {
-  const resultados = getGroupedStats("front-lh");
-  console.log(JSON.stringify(resultados, null, 2));
   registerUserHandlers();
   registerSensorHandlers();
   registerMeasurementHandlers();
+  registerChartHandlers();
   createWindow();
 });
 export {
