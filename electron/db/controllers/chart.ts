@@ -9,9 +9,12 @@ import {
 import { MedidaData } from "../../../src/types/chart";
 
 export function registerChartHandlers() {
-  ipcMain.handle("chart:getGroupedStats", async (_e, model: string) => {
-    return await getGroupedStats(model);
-  });
+  ipcMain.handle(
+    "chart:getGroupedStats",
+    async (_e, model: string, startDate?: string, endDate?: string) => {
+      return await getGroupedStats(model, startDate, endDate);
+    }
+  );
   ipcMain.handle(
     "chart:filtrarPorMedida",
     async (_e, datos: MedidaData[], medida: string) => {

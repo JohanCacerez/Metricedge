@@ -41,7 +41,11 @@ export interface MeasurementAPI {
 }
 
 export interface ChartAPI {
-  getGroupedStats: (sensorName: string) => Promise<MedidaData[]>;
+  getGroupedStats: (
+    model: string,
+    startDate?: string,
+    endDate?: string
+  ) => Promise<MedidaData[]>;
   filtrarPorMedida: (
     datos: MedidaData[],
     medida: string

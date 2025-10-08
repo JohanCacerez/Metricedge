@@ -21,54 +21,82 @@ export function MetricChart({
   const [datos, setDatos] = useState<MedidaData[]>([]);
   const [datosMedida1, setDatosMedida1] = useState<MedidaData[]>([]);
   const [stats, setStats] = useState<any>(null);
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
 
-  const widthStr = width ? `${width}px` : "400px";
+  const modeloId = "front-lh";
 
-  const modeloId = "front-lh"; // tu modelo
+  const fetchData = async () => {
+    try {
+      const todosDatos: MedidaData[] =
+        await window.electronAPI.chart.getGroupedStats(
+          modeloId,
+          startDate || undefined,
+          endDate || undefined
+        );
+      setDatos(todosDatos);
+
+      const medida1 = todosDatos.filter((d) => d.medida === "medida1");
+      setDatosMedida1(medida1);
+
+      if (medida1.length) {
+        const sumaPromedios = medida1.reduce((acc, item) => acc + item.prom, 0);
+        const Xmed = sumaPromedios / medida1.length;
+        const sumaRangos = medida1.reduce((acc, item) => acc + item.rango, 0);
+        const Rmed = sumaRangos / medida1.length;
+
+        const LSCX = Xmed + 0.577 * Rmed + 0.00002 * (Xmed + 0.577 * Rmed);
+        const LICX = Xmed - 0.577 * Rmed - 0.00002 * (Xmed - 0.577 * Rmed);
+        const LSCR = 2.114 * Rmed;
+        const sigma = Rmed / 2.326;
+        const LSE = 1250; // ejemplo
+        const LIE = 1246; // ejemplo
+        const CPK = Math.min(
+          (LSE - Xmed) / (3 * sigma),
+          (Xmed - LIE) / (3 * sigma)
+        );
+        const CP = (LSE - LIE) / (6 * sigma);
+
+        setStats({ LSCX, LICX, LSCR, sigma, CPK, CP, Xmed });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        // 1️⃣ Obtener todos los grupos de todos las medidas
-        const todosDatos: MedidaData[] =
-          await window.electronAPI.chart.getGroupedStats(modeloId);
-        setDatos(todosDatos);
-
-        // 2️⃣ Filtrar solo la medida1
-        const medida1 = await window.electronAPI.chart.filtrarPorMedida(
-          todosDatos,
-          "medida1"
-        );
-        setDatosMedida1(medida1);
-
-        // 3️⃣ Calcular estadísticas para graficar
-        const resultadoStats = await window.electronAPI.chart.calcDataForChart(
-          medida1,
-          1250, // LSE
-          1246 // LIE
-        );
-        setStats(resultadoStats);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
     fetchData();
   }, []);
 
   if (!datosMedida1 || !stats) return <div>Cargando...</div>;
 
-  // Definir rango Y dinámico
   const minY = Math.min(...datosMedida1.map((d) => d.prom), stats.LICX) - 5;
   const maxY = Math.max(...datosMedida1.map((d) => d.prom), stats.LSCX) + 5;
 
   return (
-    <div
-      className={`w-[${widthStr}] p-4 bg-white rounded-2xl text-text-inverse font-body `}
-    >
-      <h2>
-        Medida <span className="text-primary font-bold">{medida}</span>
-      </h2>
+    <div className="p-4 bg-white rounded-2xl shadow-md">
+      <h2 className="text-lg font-bold mb-2">Filtrar por fechas</h2>
+      <div className="flex gap-2 mb-4">
+        <input
+          type="date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          className="border rounded px-2 py-1"
+        />
+        <input
+          type="date"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+          className="border rounded px-2 py-1"
+        />
+        <button
+          onClick={fetchData}
+          className="bg-blue-500 text-white px-4 py-1 rounded"
+        >
+          Filtrar
+        </button>
+      </div>
+
       <LineChart
         width={width}
         height={400}
@@ -90,8 +118,6 @@ export function MetricChart({
           stroke="#FF0000"
           strokeWidth={2}
         />
-
-        {/* Líneas de referencia */}
         <ReferenceLine
           y={stats.Xmed}
           stroke="#0000FF"
@@ -102,13 +128,13 @@ export function MetricChart({
           y={stats.LSCX}
           stroke="#FFA500"
           strokeDasharray="5 5"
-          label="LSC"
+          label="LSCX"
         />
         <ReferenceLine
           y={stats.LICX}
           stroke="#FFA500"
           strokeDasharray="5 5"
-          label="LIC"
+          label="LICX"
         />
       </LineChart>
     </div>

@@ -33,8 +33,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("measurements:save", measurement),
   },
   chart: {
-    getGroupedStats: (sensorName: string) =>
-      ipcRenderer.invoke("chart:getGroupedStats", sensorName),
+    getGroupedStats: (model: string, startDate?: string, endDate?: string) =>
+      ipcRenderer.invoke("chart:getGroupedStats", model, startDate, endDate),
     filtrarPorMedida: (datos: MedidaData[], medida: string) =>
       ipcRenderer.invoke("chart:filtrarPorMedida", datos, medida),
     calcDataForChart: (datos: MedidaData[], LSE: number, LIE: number) =>

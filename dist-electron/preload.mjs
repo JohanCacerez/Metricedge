@@ -19,7 +19,7 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
     save: (measurement) => electron.ipcRenderer.invoke("measurements:save", measurement)
   },
   chart: {
-    getGroupedStats: (sensorName) => electron.ipcRenderer.invoke("chart:getGroupedStats", sensorName),
+    getGroupedStats: (model, startDate, endDate) => electron.ipcRenderer.invoke("chart:getGroupedStats", model, startDate, endDate),
     filtrarPorMedida: (datos, medida) => electron.ipcRenderer.invoke("chart:filtrarPorMedida", datos, medida),
     calcDataForChart: (datos, LSE, LIE) => electron.ipcRenderer.invoke("chart:calcDataForChart", datos, LSE, LIE)
   }

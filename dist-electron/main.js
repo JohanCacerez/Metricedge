@@ -228,40 +228,48 @@ function registerMeasurementHandlers() {
     return await saveMeasurements(measurement);
   });
 }
-function getGroupedStats(modeloId) {
+function getGroupedStats(modeloId, startDate, endDate) {
   const posiblesMedidas = ["medida1", "medida2", "medida3", "medida4"];
   const medidasValidas = [];
   for (const medida of posiblesMedidas) {
-    const row = db.prepare(
-      `SELECT COUNT(${medida}) AS total
-         FROM mediciones
-         WHERE modelo_id = ? AND ${medida} IS NOT NULL`
-    ).get(modeloId);
-    if (row?.total > 0) {
-      medidasValidas.push(medida);
+    let query = `SELECT COUNT(${medida}) AS total FROM mediciones WHERE modelo_id = ?`;
+    const params = [modeloId];
+    if (startDate) {
+      query += ` AND fecha >= ?`;
+      params.push(startDate);
     }
+    if (endDate) {
+      query += ` AND fecha <= ?`;
+      params.push(endDate);
+    }
+    const row = db.prepare(query).get(...params);
+    if (row?.total > 0) medidasValidas.push(medida);
   }
   const resultados = [];
   for (const medida of medidasValidas) {
-    const rows = db.prepare(
-      `SELECT ${medida} AS valor
-         FROM mediciones
-         WHERE modelo_id = ? AND ${medida} IS NOT NULL
-         ORDER BY fecha ASC`
-    ).all(modeloId);
+    let query = `SELECT ${medida} AS valor FROM mediciones WHERE modelo_id = ? AND ${medida} IS NOT NULL`;
+    const params = [modeloId];
+    if (startDate) {
+      query += ` AND fecha >= ?`;
+      params.push(startDate);
+    }
+    if (endDate) {
+      query += ` AND fecha <= ?`;
+      params.push(endDate);
+    }
+    query += ` ORDER BY fecha ASC`;
+    const rows = db.prepare(query).all(...params);
     for (let i = 0; i < rows.length; i += 5) {
       const grupo = rows.slice(i, i + 5).map((r) => Number(r.valor));
-      if (grupo.length === 0) continue;
-      console.log(`Grupo ${Math.floor(i / 5) + 1} de ${medida}:`, grupo);
+      if (!grupo.length) continue;
       const prom = grupo.reduce((a, b) => a + b, 0) / grupo.length;
       const rango = Math.max(...grupo) - Math.min(...grupo);
       resultados.push({
         medida,
         grupo: Math.floor(i / 5) + 1,
-        prom,
-        rango,
+        prom: Number(prom.toFixed(3)),
+        rango: Number(rango.toFixed(3)),
         numeros: grupo
-        // <-- agregamos los números exactos
       });
     }
   }
@@ -294,9 +302,12 @@ function calcDataForChart(datos, LSE, LIE) {
   };
 }
 function registerChartHandlers() {
-  ipcMain.handle("chart:getGroupedStats", async (_e, model) => {
-    return await getGroupedStats(model);
-  });
+  ipcMain.handle(
+    "chart:getGroupedStats",
+    async (_e, model, startDate, endDate) => {
+      return await getGroupedStats(model, startDate, endDate);
+    }
+  );
   ipcMain.handle(
     "chart:filtrarPorMedida",
     async (_e, datos, medida) => {

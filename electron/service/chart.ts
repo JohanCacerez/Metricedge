@@ -3,46 +3,54 @@ import db from "../db";
 import { MedidaData } from "../../src/types/chart";
 
 // Función para obtener estadísticas agrupadas por medida
-export function getGroupedStats(modeloId: string): MedidaData[] {
+export function getGroupedStats(
+  modeloId: string,
+  startDate?: string,
+  endDate?: string
+): MedidaData[] {
   const posiblesMedidas = ["medida1", "medida2", "medida3", "medida4"];
   const medidasValidas: string[] = [];
 
   // Detectamos qué medidas tienen datos
   for (const medida of posiblesMedidas) {
-    const row = db
-      .prepare(
-        `SELECT COUNT(${medida}) AS total
-         FROM mediciones
-         WHERE modelo_id = ? AND ${medida} IS NOT NULL`
-      )
-      .get(modeloId);
+    let query = `SELECT COUNT(${medida}) AS total FROM mediciones WHERE modelo_id = ?`;
+    const params: (string | number)[] = [modeloId];
 
-    if (row?.total > 0) {
-      medidasValidas.push(medida);
+    if (startDate) {
+      query += ` AND fecha >= ?`;
+      params.push(startDate);
     }
+    if (endDate) {
+      query += ` AND fecha <= ?`;
+      params.push(endDate);
+    }
+
+    const row = db.prepare(query).get(...params);
+    if (row?.total > 0) medidasValidas.push(medida);
   }
 
   const resultados: MedidaData[] = [];
 
-  // Recorremos cada medida válida
   for (const medida of medidasValidas) {
-    const rows: { valor: number }[] = db
-      .prepare(
-        `SELECT ${medida} AS valor
-         FROM mediciones
-         WHERE modelo_id = ? AND ${medida} IS NOT NULL
-         ORDER BY fecha ASC`
-      )
-      .all(modeloId);
+    let query = `SELECT ${medida} AS valor FROM mediciones WHERE modelo_id = ? AND ${medida} IS NOT NULL`;
+    const params: (string | number)[] = [modeloId];
 
-    // Agrupamos en grupos de 5
+    if (startDate) {
+      query += ` AND fecha >= ?`;
+      params.push(startDate);
+    }
+    if (endDate) {
+      query += ` AND fecha <= ?`;
+      params.push(endDate);
+    }
+
+    query += ` ORDER BY fecha ASC`;
+
+    const rows: { valor: number }[] = db.prepare(query).all(...params);
+
     for (let i = 0; i < rows.length; i += 5) {
-      const grupo: number[] = rows.slice(i, i + 5).map((r) => Number(r.valor));
-
-      if (grupo.length === 0) continue;
-
-      // Log para ver los números exactos de cada grupo
-      console.log(`Grupo ${Math.floor(i / 5) + 1} de ${medida}:`, grupo);
+      const grupo = rows.slice(i, i + 5).map((r) => Number(r.valor));
+      if (!grupo.length) continue;
 
       const prom = grupo.reduce((a, b) => a + b, 0) / grupo.length;
       const rango = Math.max(...grupo) - Math.min(...grupo);
@@ -50,9 +58,9 @@ export function getGroupedStats(modeloId: string): MedidaData[] {
       resultados.push({
         medida,
         grupo: Math.floor(i / 5) + 1,
-        prom: prom,
-        rango: rango,
-        numeros: grupo, // <-- agregamos los números exactos
+        prom: Number(prom.toFixed(3)),
+        rango: Number(rango.toFixed(3)),
+        numeros: grupo,
       });
     }
   }
