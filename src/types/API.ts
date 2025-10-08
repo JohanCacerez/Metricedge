@@ -6,6 +6,7 @@ import {
   LoginResponse,
 } from "./user";
 import { Measurement } from "./measurement";
+import { MedidaData } from "./chart";
 
 declare global {
   interface Window {
@@ -13,6 +14,7 @@ declare global {
       users: UserAPI;
       sensor: SensorAPI;
       measurements: MeasurementAPI;
+      chart: ChartAPI;
     };
   }
 }
@@ -36,4 +38,17 @@ export interface MeasurementAPI {
   save: (
     measurement: Measurement
   ) => Promise<{ success: boolean; message: string }>;
+}
+
+export interface ChartAPI {
+  getGroupedStats: (sensorName: string) => Promise<MedidaData[]>;
+  filtrarPorMedida: (
+    datos: MedidaData[],
+    medida: string
+  ) => Promise<MedidaData[]>;
+  calcDataForChart: (
+    datos: MedidaData[],
+    LSE: number,
+    LIE: number
+  ) => Promise<any>;
 }

@@ -5,6 +5,8 @@ import "./db/index";
 import { registerUserHandlers } from "./db/controllers/users";
 import { registerSensorHandlers } from "./db/controllers/sensor";
 import { registerMeasurementHandlers } from "./db/controllers/measurement";
+import { registerChartHandlers } from "./db/controllers/chart";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 //test
@@ -69,5 +71,6 @@ app.whenReady().then(() => {
   registerUserHandlers();
   registerSensorHandlers();
   registerMeasurementHandlers();
+  registerChartHandlers();
   createWindow();
 });

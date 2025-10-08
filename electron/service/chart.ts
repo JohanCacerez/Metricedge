@@ -1,11 +1,6 @@
 import db from "../db";
 
-type MedidaData = {
-  medida: string;
-  grupo: number;
-  prom: number;
-  rango: number;
-};
+import { MedidaData } from "../../src/types/chart";
 
 // Función para obtener estadísticas agrupadas por medida
 export function getGroupedStats(modeloId: string): MedidaData[] {
