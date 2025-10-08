@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useModelStore } from "../../../../store/modelStore";
 import { Model } from "../../../../types/model";
 import { toast } from "sonner";
@@ -42,6 +42,15 @@ const models: Model[] = [
 export const ModelSelector = () => {
   const { activeModel, setActiveModel } = useModelStore();
   const [selectedModel, setSelectedModel] = useState(activeModel?.id || "");
+  const [lse, setLse] = useState(localStorage.getItem("lse") || "");
+  const [lie, setLie] = useState(localStorage.getItem("lie") || "");
+
+  useEffect(() => {
+    // Si hay un modelo activo, setear los valores en los inputs
+    if (activeModel) {
+      setSelectedModel(activeModel.id);
+    }
+  }, [activeModel]);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedModel(e.target.value);
@@ -50,8 +59,16 @@ export const ModelSelector = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const model = models.find((m) => m.id === selectedModel);
-    if (model) setActiveModel(model);
-    toast.info(`Modelo ${model?.name} activado`);
+    if (!model) {
+      toast.error("Selecciona un modelo válido");
+      return;
+    }
+
+    setActiveModel(model);
+    localStorage.setItem("lse", lse);
+    localStorage.setItem("lie", lie);
+
+    toast.info(`Modelo ${model.name} activado. LSE: ${lse}, LIE: ${lie}`);
   };
 
   return (
@@ -65,7 +82,6 @@ export const ModelSelector = () => {
         <label htmlFor="model" className="text-lg font-body text-text">
           Selecciona un modelo:
         </label>
-
         <select
           id="model"
           value={selectedModel}
@@ -79,6 +95,28 @@ export const ModelSelector = () => {
             </option>
           ))}
         </select>
+
+        <label htmlFor="lse" className="text-lg font-body text-text">
+          LSE:
+        </label>
+        <input
+          type="number"
+          id="lse"
+          value={lse}
+          onChange={(e) => setLse(e.target.value)}
+          className="p-4 text-lg font-ui border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+
+        <label htmlFor="lie" className="text-lg font-body text-text">
+          LIE:
+        </label>
+        <input
+          type="number"
+          id="lie"
+          value={lie}
+          onChange={(e) => setLie(e.target.value)}
+          className="p-4 text-lg font-ui border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
 
         <button
           type="submit"

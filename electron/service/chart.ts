@@ -14,7 +14,7 @@ export function getGroupedStats(
   // Detectamos qué medidas tienen datos
   for (const medida of posiblesMedidas) {
     let query = `SELECT COUNT(${medida}) AS total FROM mediciones WHERE modelo_id = ?`;
-    const params: (string | number)[] = [modeloId];
+    const params: string[] = [modeloId];
 
     if (startDate) {
       query += ` AND fecha >= ?`;

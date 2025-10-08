@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -11,20 +11,29 @@ import {
 } from "recharts";
 import { MedidaData } from "../../types/chart";
 
+import { useChartStore } from "../../store/chart";
+
 export function MetricChart({
   width,
   medida,
+  modeloId,
+  LSE,
+  LIE,
+  medicion,
 }: {
   width: number;
   medida: string;
+  modeloId: string;
+  LSE: number;
+  LIE: number;
+  medicion: string;
 }) {
-  const [datos, setDatos] = useState<MedidaData[]>([]);
+  const [, setDatos] = useState<MedidaData[]>([]);
   const [datosMedida1, setDatosMedida1] = useState<MedidaData[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
-
-  const modeloId = "front-lh";
+  const { refreshKey } = useChartStore();
 
   const fetchData = async () => {
     try {
@@ -36,7 +45,7 @@ export function MetricChart({
         );
       setDatos(todosDatos);
 
-      const medida1 = todosDatos.filter((d) => d.medida === "medida1");
+      const medida1 = todosDatos.filter((d) => d.medida === medicion);
       setDatosMedida1(medida1);
 
       if (medida1.length) {
@@ -49,8 +58,6 @@ export function MetricChart({
         const LICX = Xmed - 0.577 * Rmed - 0.00002 * (Xmed - 0.577 * Rmed);
         const LSCR = 2.114 * Rmed;
         const sigma = Rmed / 2.326;
-        const LSE = 1250; // ejemplo
-        const LIE = 1246; // ejemplo
         const CPK = Math.min(
           (LSE - Xmed) / (3 * sigma),
           (Xmed - LIE) / (3 * sigma)
@@ -66,16 +73,18 @@ export function MetricChart({
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [refreshKey, LSE, LIE, startDate, endDate]);
 
   if (!datosMedida1 || !stats) return <div>Cargando...</div>;
 
-  const minY = Math.min(...datosMedida1.map((d) => d.prom), stats.LICX) - 5;
-  const maxY = Math.max(...datosMedida1.map((d) => d.prom), stats.LSCX) + 5;
+  const minY = Math.min(...datosMedida1.map((d) => d.prom), stats.LICX) - 1;
+  const maxY = Math.max(...datosMedida1.map((d) => d.prom), stats.LSCX) + 1;
 
   return (
-    <div className="p-4 bg-white rounded-2xl shadow-md">
-      <h2 className="text-lg font-bold mb-2">Filtrar por fechas</h2>
+    <div className="p-4 bg-white rounded-2xl shadow-md text-text-inverse font-body">
+      <h2 className="text-lg font-bold mb-2">
+        Medida <span className="text-primary">{medida}</span>
+      </h2>
       <div className="flex gap-2 mb-4">
         <input
           type="date"
@@ -99,7 +108,7 @@ export function MetricChart({
 
       <LineChart
         width={width}
-        height={400}
+        height={350}
         data={datosMedida1}
         margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
       >
@@ -108,7 +117,10 @@ export function MetricChart({
           dataKey="grupo"
           label={{ value: "Grupo", position: "insideBottom", offset: -5 }}
         />
-        <YAxis domain={[minY, maxY]} />
+        <YAxis
+          domain={[minY, maxY]}
+          tickFormatter={(value) => value.toFixed(3)}
+        />
         <Tooltip />
         <Legend />
         <Line
@@ -128,13 +140,13 @@ export function MetricChart({
           y={stats.LSCX}
           stroke="#FFA500"
           strokeDasharray="5 5"
-          label="LSCX"
+          label="LSC"
         />
         <ReferenceLine
           y={stats.LICX}
           stroke="#FFA500"
           strokeDasharray="5 5"
-          label="LICX"
+          label="LIC"
         />
       </LineChart>
     </div>

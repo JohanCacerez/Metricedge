@@ -5,6 +5,7 @@ import { CaptureImageRef } from "./CaptureImage";
 import { useMeasurementStore } from "../../../store/measurement";
 import { useUserStore } from "../../../store/userStore";
 import { useModelStore } from "../../../store/modelStore";
+import { useChartStore } from "../../../store/chart";
 
 interface CaptureButtonsProps {
   captureRef: React.RefObject<CaptureImageRef>;
@@ -14,6 +15,8 @@ export default function Capturebuttons({ captureRef }: CaptureButtonsProps) {
   const { saveMeasurement } = useMeasurementStore();
   const { user } = useUserStore();
   const { activeModel } = useModelStore();
+
+  const { triggerRefresh } = useChartStore();
 
   const handleSave = async () => {
     const rawMeasurements = captureRef.current?.getCapturedMeasurements() ?? [];
@@ -43,6 +46,7 @@ export default function Capturebuttons({ captureRef }: CaptureButtonsProps) {
       });
       captureRef.current?.resetInputs();
       toast.success("Mediciones guardadas con éxito.");
+      triggerRefresh();
     } catch (error) {
       toast.error(`Error al guardar las mediciones: ${error}`);
     }

@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { MedidaData } from "../types/chart";
 
 interface ChartState {
+  refreshKey: number;
+  triggerRefresh: () => void;
   getGroupedStats: (
     modeloId: string,
     startDate?: string,
@@ -9,7 +11,9 @@ interface ChartState {
   ) => Promise<MedidaData[]>;
 }
 
-export const useChartStore = create<ChartState>(() => ({
+export const useChartStore = create<ChartState>((set) => ({
+  refreshKey: 0,
+  triggerRefresh: () => set((state) => ({ refreshKey: state.refreshKey + 1 })),
   getGroupedStats: async (
     modeloId: string,
     startDate?: string,
