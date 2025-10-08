@@ -106,6 +106,7 @@ export function calcDataForChart(
   const CP = (LSE - LIE) / (6 * sigma);
 
   return {
+    Xmed: Number(Xmed.toFixed(1)),
     LSCX: Number(LSCX.toFixed(2)),
     LICX: Number(LICX.toFixed(2)),
     LSCR: Number(LSCR.toFixed(3)),

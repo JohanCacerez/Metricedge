@@ -284,6 +284,7 @@ function calcDataForChart(datos, LSE, LIE) {
   const CPK = Math.min((LSE - Xmed) / (3 * sigma), (Xmed - LIE) / (3 * sigma));
   const CP = (LSE - LIE) / (6 * sigma);
   return {
+    Xmed: Number(Xmed.toFixed(1)),
     LSCX: Number(LSCX.toFixed(2)),
     LICX: Number(LICX.toFixed(2)),
     LSCR: Number(LSCR.toFixed(3)),
