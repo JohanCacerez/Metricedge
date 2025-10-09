@@ -25,16 +25,16 @@ export default function Index() {
 
   if (activeModel.id === "front-lh" || activeModel.id === "front-rh") {
     graficas = [
-      { medida: "F1", width: 600, medicion: "medida1" },
-      { medida: "F2", width: 600, medicion: "medida2" },
-      { medida: "F3", width: 600, medicion: "medida3" },
+      { medida: "F7", width: 600, medicion: "medida1" },
+      { medida: "F6", width: 600, medicion: "medida2" },
+      { medida: "F1", width: 600, medicion: "medida3" },
     ];
   } else if (activeModel.id === "rear-lh" || activeModel.id === "rear-rh") {
     graficas = [
-      { medida: "R1", width: 500, medicion: "medida1" },
-      { medida: "R2", width: 500, medicion: "medida2" },
-      { medida: "R3", width: 500, medicion: "medida3" },
-      { medida: "R4", width: 500, medicion: "medida4" },
+      { medida: "F14", width: 500, medicion: "medida1" },
+      { medida: "F15", width: 500, medicion: "medida2" },
+      { medida: "F1", width: 500, medicion: "medida3" },
+      { medida: "F8", width: 500, medicion: "medida4" },
     ];
   }
 

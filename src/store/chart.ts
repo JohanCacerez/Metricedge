@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { MedidaData } from "../types/chart";
+import { MedidaData, Stat, TendenciaResultado } from "../types/chart";
 
 interface ChartState {
   refreshKey: number;
@@ -9,6 +9,7 @@ interface ChartState {
     startDate?: string,
     endDate?: string
   ) => Promise<MedidaData[]>;
+  detectarTendencia: (datos: Stat[]) => Promise<TendenciaResultado>;
 }
 
 export const useChartStore = create<ChartState>((set) => ({
@@ -29,6 +30,15 @@ export const useChartStore = create<ChartState>((set) => ({
     } catch (err) {
       if (err instanceof Error) throw err;
       throw new Error("Error fetching grouped stats");
+    }
+  },
+  detectarTendencia: async (datos: Stat[]) => {
+    try {
+      const resultado = await window.electronAPI.chart.detectarTendencia(datos);
+      return resultado;
+    } catch (err) {
+      if (err instanceof Error) throw err;
+      throw new Error("Error detecting trend");
     }
   },
 }));

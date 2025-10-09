@@ -12,7 +12,7 @@ import {
 import { MedidaData } from "../../types/chart";
 
 import { useChartStore } from "../../store/chart";
-import { useModelStore } from "../../store/modelStore";
+import { useModelStore } from "../../store/modelStore"; // 👈 Asegúrate de tener la función aquí
 
 export function MetricChart({
   width,
@@ -32,10 +32,12 @@ export function MetricChart({
   const [, setDatos] = useState<MedidaData[]>([]);
   const [datosMedida1, setDatosMedida1] = useState<MedidaData[]>([]);
   const [stats, setStats] = useState<any>(null);
+  const [statsHistorial, setStatsHistorial] = useState<any[]>([]); // 👈 Nuevo: guardará el historial
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
-  const { refreshKey } = useChartStore();
+  const { refreshKey, detectarTendencia } = useChartStore();
   const { activeModel } = useModelStore();
+  const [tendencia, setTendencia] = useState("estable");
 
   const fetchData = async () => {
     try {
@@ -45,6 +47,7 @@ export function MetricChart({
           startDate || undefined,
           endDate || undefined
         );
+
       setDatos(todosDatos);
 
       const medida1 = todosDatos.filter((d) => d.medida === medicion);
@@ -66,12 +69,62 @@ export function MetricChart({
         );
         const CP = (LSE - LIE) / (6 * sigma);
 
-        setStats({ LSCX, LICX, LSCR, sigma, CPK, CP, Xmed });
+        const nuevoStats = { LSCX, LICX, LSCR, sigma, CPK, CP, Xmed };
+        setStats(nuevoStats);
+
+        // 👇 Añadimos el nuevo objeto al historial
+        setStatsHistorial((prev) => {
+          const nuevoHistorial = [...prev, nuevoStats];
+          // Limitamos tamaño si quieres (ej. máximo 20 mediciones)
+          if (nuevoHistorial.length > 20) nuevoHistorial.shift();
+          return nuevoHistorial;
+        });
       }
     } catch (err) {
       console.error(err);
     }
   };
+
+  // 👇 Detectar tendencia cuando cambia el historial
+  useEffect(() => {
+    if (statsHistorial.length >= 6) {
+      const analizarTendencia = async () => {
+        try {
+          const resultado = await detectarTendencia(statsHistorial);
+          setTendencia(resultado.tendencia); // o resultado.tipo si tu API devuelve 'tipo'
+        } catch (err) {
+          console.error("Error al detectar tendencia:", err);
+        }
+      };
+      analizarTendencia();
+    }
+  }, [statsHistorial]);
+
+  // 👇 Prueba inicial de la función de tendencia
+  /* useEffect(() => {
+    // Arreglo de prueba manual
+    const pruebaStats = [
+      { Xmed: 585 },
+      { Xmed: 586 },
+      { Xmed: 585.5 },
+      { Xmed: 586.5 },
+      { Xmed: 587 },
+      { Xmed: 587.5 },
+      { Xmed: 588 },
+    ];
+
+    const testTendencia = async () => {
+      try {
+        const resultado = await detectarTendencia(pruebaStats); // store async
+        console.log("Tendencia de prueba:", resultado);
+        setTendencia(resultado.tendencia); // mostrar en UI si quieres
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    testTendencia();
+  }, []); */
 
   useEffect(() => {
     fetchData();
@@ -84,9 +137,27 @@ export function MetricChart({
 
   return (
     <div className="p-4 bg-white rounded-2xl shadow-md text-text-inverse font-body">
-      <h2 className="text-lg font-bold mb-2">
-        Medida <span className="text-primary">{medida}</span>
-      </h2>
+      <div className=" flex text-lg gap-10 font-bold mb-2">
+        <h2>
+          Medida <span className="text-primary">{medida}</span>{" "}
+        </h2>
+
+        <div className=" font-body font-semibold">
+          Tendencia:{" "}
+          <span
+            className={
+              tendencia === "aumento"
+                ? "text-red-600"
+                : tendencia === "descenso"
+                ? "text-red-600"
+                : "text-green-600"
+            }
+          >
+            {tendencia}
+          </span>
+        </div>
+      </div>
+
       <div className="flex gap-2 mb-4">
         <input
           type="date"
@@ -107,6 +178,8 @@ export function MetricChart({
           Filtrar
         </button>
       </div>
+
+      {/* 👇 Muestra la tendencia actual */}
 
       <LineChart
         width={width}

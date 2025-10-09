@@ -301,6 +301,25 @@ function calcDataForChart(datos, LSE, LIE) {
     CP: Number(CP.toFixed(2))
   };
 }
+function detectarTendencia(stats) {
+  if (!stats || stats.length < 6) {
+    return { tendencia: "estable", pendiente: 0 };
+  }
+  const datos = stats.slice(5).map((s) => s.Xmed);
+  const n = datos.length;
+  const x = Array.from({ length: n }, (_, i) => i + 1);
+  const sumX = x.reduce((a, b) => a + b, 0);
+  const sumY = datos.reduce((a, b) => a + b, 0);
+  const sumXY = x.reduce((acc, xi, i) => acc + xi * datos[i], 0);
+  const sumX2 = x.reduce((acc, xi) => acc + xi * xi, 0);
+  const pendiente = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+  let tendencia;
+  const umbral = 0.02;
+  if (pendiente > umbral) tendencia = "aumento";
+  else if (pendiente < -umbral) tendencia = "descenso";
+  else tendencia = "estable";
+  return { tendencia, pendiente: Number(pendiente.toFixed(4)) };
+}
 function registerChartHandlers() {
   ipcMain.handle(
     "chart:getGroupedStats",
@@ -320,6 +339,9 @@ function registerChartHandlers() {
       return await calcDataForChart(datos, LSE, LIE);
     }
   );
+  ipcMain.handle("chart:detectarTendencia", async (_e, datos) => {
+    return await detectarTendencia(datos);
+  });
 }
 const __dirname = path$1.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path$1.join(__dirname, "..");

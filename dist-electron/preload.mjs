@@ -21,6 +21,7 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
   chart: {
     getGroupedStats: (model, startDate, endDate) => electron.ipcRenderer.invoke("chart:getGroupedStats", model, startDate, endDate),
     filtrarPorMedida: (datos, medida) => electron.ipcRenderer.invoke("chart:filtrarPorMedida", datos, medida),
-    calcDataForChart: (datos, LSE, LIE) => electron.ipcRenderer.invoke("chart:calcDataForChart", datos, LSE, LIE)
+    calcDataForChart: (datos, LSE, LIE) => electron.ipcRenderer.invoke("chart:calcDataForChart", datos, LSE, LIE),
+    detectarTendencia: (datos) => electron.ipcRenderer.invoke("chart:detectarTendencia", datos)
   }
 });

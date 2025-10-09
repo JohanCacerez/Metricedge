@@ -4,9 +4,10 @@ import {
   getGroupedStats,
   filtrarPorMedida,
   calcDataForChart,
+  detectarTendencia,
 } from "../../service/chart";
 
-import { MedidaData } from "../../../src/types/chart";
+import { MedidaData, Stat } from "../../../src/types/chart";
 
 export function registerChartHandlers() {
   ipcMain.handle(
@@ -27,4 +28,7 @@ export function registerChartHandlers() {
       return await calcDataForChart(datos, LSE, LIE);
     }
   );
+  ipcMain.handle("chart:detectarTendencia", async (_e, datos: Stat[]) => {
+    return await detectarTendencia(datos);
+  });
 }

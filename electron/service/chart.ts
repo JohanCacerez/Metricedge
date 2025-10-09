@@ -1,6 +1,6 @@
 import db from "../db";
 
-import { MedidaData } from "../../src/types/chart";
+import { MedidaData, TendenciaResultado, Stat } from "../../src/types/chart";
 
 // Función para obtener estadísticas agrupadas por medida
 export function getGroupedStats(
@@ -122,4 +122,34 @@ export function calcDataForChart(
     sigma: Number(sigma.toFixed(4)),
     CP: Number(CP.toFixed(2)),
   };
+}
+
+// Detectar tendencias
+
+export function detectarTendencia(stats: Stat[]): TendenciaResultado {
+  if (!stats || stats.length < 6) {
+    return { tendencia: "estable", pendiente: 0 };
+  }
+
+  // Extraemos los valores de Xmed a partir de la 6ta medición
+  const datos = stats.slice(5).map((s) => s.Xmed);
+
+  const n = datos.length;
+  const x = Array.from({ length: n }, (_, i) => i + 1);
+
+  const sumX = x.reduce((a, b) => a + b, 0);
+  const sumY = datos.reduce((a, b) => a + b, 0);
+  const sumXY = x.reduce((acc, xi, i) => acc + xi * datos[i], 0);
+  const sumX2 = x.reduce((acc, xi) => acc + xi * xi, 0);
+
+  const pendiente = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+
+  let tendencia: "aumento" | "descenso" | "estable";
+  const umbral = 0.02; // sensibilidad (ajustable según variación típica de tus Xmed)
+
+  if (pendiente > umbral) tendencia = "aumento";
+  else if (pendiente < -umbral) tendencia = "descenso";
+  else tendencia = "estable";
+
+  return { tendencia, pendiente: Number(pendiente.toFixed(4)) };
 }

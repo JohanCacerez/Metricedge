@@ -6,7 +6,7 @@ import {
   LoginResponse,
 } from "./user";
 import { Measurement } from "./measurement";
-import { MedidaData } from "./chart";
+import { MedidaData, TendenciaResultado, Stat } from "./chart";
 
 declare global {
   interface Window {
@@ -55,4 +55,5 @@ export interface ChartAPI {
     LSE: number,
     LIE: number
   ) => Promise<any>;
+  detectarTendencia: (datos: Stat[]) => Promise<TendenciaResultado>;
 }
