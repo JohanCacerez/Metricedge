@@ -11,6 +11,8 @@ import {
 } from "recharts";
 import { MedidaData } from "../../types/chart";
 
+import { AiFillCarryOut } from "react-icons/ai";
+
 import { useChartStore } from "../../store/chart";
 import { useModelStore } from "../../store/modelStore"; // 👈 Asegúrate de tener la función aquí
 
@@ -132,8 +134,8 @@ export function MetricChart({
 
   if (!datosMedida1 || !stats) return <div>Cargando...</div>;
 
-  const minY = Math.min(...datosMedida1.map((d) => d.prom), stats.LICX) - 1;
-  const maxY = Math.max(...datosMedida1.map((d) => d.prom), stats.LSCX) + 1;
+  const minY = Math.min(...datosMedida1.map((d) => d.prom), stats.LICX) - 2;
+  const maxY = Math.max(...datosMedida1.map((d) => d.prom), stats.LSCX) + 2;
 
   return (
     <div className="p-4 bg-white rounded-2xl shadow-md text-text-inverse font-body">
@@ -158,24 +160,24 @@ export function MetricChart({
         </div>
       </div>
 
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-1 mb-4">
         <input
           type="date"
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
-          className="border rounded px-2 py-1"
+          className="border w-32 rounded px-2 py-1"
         />
         <input
           type="date"
           value={endDate}
           onChange={(e) => setEndDate(e.target.value)}
-          className="border rounded px-2 py-1"
+          className="border w-32 rounded px-2 py-1"
         />
         <button
           onClick={fetchData}
-          className="bg-blue-500 text-white px-4 py-1 rounded"
+          className="bg-blue-500 text-white px-2 rounded"
         >
-          Filtrar
+          <AiFillCarryOut className="inline" />
         </button>
       </div>
 
@@ -183,7 +185,7 @@ export function MetricChart({
 
       <LineChart
         width={width}
-        height={350}
+        height={300}
         data={datosMedida1}
         margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
       >

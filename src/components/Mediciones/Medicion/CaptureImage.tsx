@@ -37,13 +37,13 @@ const inputTolerances: Record<
 > = {
   "front-lh": {
     F7: { min: 232.1, max: 233.9 },
-    F6: { min: 749.5, max: 752.5 },
-    F1: { min: 1246, max: 1250 },
+    F6: { min: 750.5, max: 753.5 },
+    F1: { min: 1247, max: 1251 },
   },
   "front-rh": {
     F7: { min: 232.1, max: 233.9 },
-    F6: { min: 749.5, max: 752.5 },
-    F1: { min: 1246, max: 1250 },
+    F6: { min: 750.5, max: 753.5 },
+    F1: { min: 1247, max: 1251 },
   },
   "rear-lh": {
     F14: { min: 256.1, max: 257.9 },
@@ -144,9 +144,8 @@ const CaptureImage = forwardRef<CaptureImageRef>((_props, ref) => {
     });
   };
 
-  // Leer sensor cada segundo
   useEffect(() => {
-    const interval = setInterval(updateSensorReading, 1000);
+    const interval = setInterval(updateSensorReading, 750);
     return () => clearInterval(interval);
   }, [
     activeSensor1,

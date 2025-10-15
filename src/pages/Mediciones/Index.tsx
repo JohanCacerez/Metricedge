@@ -25,16 +25,16 @@ export default function Index() {
 
   if (activeModel.id === "front-lh" || activeModel.id === "front-rh") {
     graficas = [
-      { medida: "F7", width: 600, medicion: "medida1" },
-      { medida: "F6", width: 600, medicion: "medida2" },
-      { medida: "F1", width: 600, medicion: "medida3" },
+      { medida: "F7", width: 450, medicion: "medida1" },
+      { medida: "F6", width: 450, medicion: "medida2" },
+      { medida: "F1", width: 450, medicion: "medida3" },
     ];
   } else if (activeModel.id === "rear-lh" || activeModel.id === "rear-rh") {
     graficas = [
-      { medida: "F14", width: 500, medicion: "medida1" },
-      { medida: "F15", width: 500, medicion: "medida2" },
-      { medida: "F1", width: 500, medicion: "medida3" },
-      { medida: "F8", width: 500, medicion: "medida4" },
+      { medida: "F14", width: 350, medicion: "medida1" },
+      { medida: "F15", width: 350, medicion: "medida2" },
+      { medida: "F1", width: 350, medicion: "medida3" },
+      { medida: "F8", width: 350, medicion: "medida4" },
     ];
   }
 
@@ -45,7 +45,7 @@ export default function Index() {
       </div>
       <div className="flex-1 flex flex-col gap-2">
         <section className="flex-[1] h-[50vh] bg-surface shadow-md border border-border rounded-2xl p-4">
-          <div className="flex flex-wrap justify-around gap-2">
+          <div className="flex flex-row flex-wrap gap-2">
             {graficas.map((g, index) => (
               <MetricChart
                 key={index}
