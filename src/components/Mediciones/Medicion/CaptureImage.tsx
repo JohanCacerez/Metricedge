@@ -206,12 +206,22 @@ const CaptureImage = forwardRef<CaptureImageRef>((_props, ref) => {
 
   // Determinar color del input según tolerancia
   const getInputClass = (index: number, placeholder: string) => {
-    const val = Number(values[index]);
-    if (!activeModel || isNaN(val)) return "border-gray-500";
+    const rawValue = values[index];
+    const val = Number(rawValue);
+
+    // Si no hay modelo activo o no hay valor, fondo gris
+    if (!activeModel || rawValue === "" || rawValue == null)
+      return "bg-gray-600";
+
+    // Si el valor no es numérico, color neutro
+    if (isNaN(val)) return "bg-gray-600";
+
     const tolerance = inputTolerances[activeModel.id]?.[placeholder];
-    if (!tolerance) return "border-gray-500";
-    if (val >= tolerance.min && val <= tolerance.max) return "border-green-500";
-    return "border-red-500";
+    if (!tolerance) return "bg-gray-600";
+
+    // Dentro del rango → verde, fuera → rojo
+    if (val >= tolerance.min && val <= tolerance.max) return "bg-green-600";
+    return "bg-red-600";
   };
 
   useImperativeHandle(ref, () => ({
@@ -239,11 +249,10 @@ const CaptureImage = forwardRef<CaptureImageRef>((_props, ref) => {
         <input
           key={index}
           type="text"
-          className={`absolute w-16 bg-gray-600 border rounded px-2 py-1 ${
-            index === activeIndex
-              ? "border-yellow-400"
-              : getInputClass(index, input.placeholder)
-          }`}
+          className={`absolute w-16 border rounded px-2 py-1 text-white text-center font-semibold transition-all duration-300
+          ${getInputClass(index, input.placeholder)}
+          ${index === activeIndex ? "ring-2 ring-yellow-400 scale-105" : ""}
+        `}
           style={{ top: input.top, left: input.left }}
           placeholder={input.placeholder}
           value={values[index]}

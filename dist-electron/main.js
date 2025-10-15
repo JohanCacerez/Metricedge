@@ -1,11 +1,15 @@
-import { app as R, ipcMain as p, BrowserWindow as b, screen as C } from "electron";
-import { fileURLToPath as U } from "node:url";
-import f from "node:path";
-import { createRequire as O } from "module";
-import P, { join as M } from "path";
-import { exec as x } from "child_process";
-const S = O(import.meta.url), y = S("better-sqlite3"), F = S("bcrypt"), D = P.join(R.getPath("userData"), "database.sqlite"), l = new y(D);
-l.exec(`
+import { app, ipcMain, BrowserWindow, screen } from "electron";
+import { fileURLToPath } from "node:url";
+import path$1 from "node:path";
+import { createRequire } from "module";
+import path, { join } from "path";
+import { exec } from "child_process";
+const require$1 = createRequire(import.meta.url);
+const Database = require$1("better-sqlite3");
+const bcrypt$1 = require$1("bcrypt");
+const dbPath = path.join(app.getPath("userData"), "database.sqlite");
+const db = new Database(dbPath);
+db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre TEXT NOT NULL,
@@ -30,263 +34,373 @@ l.exec(`
     FOREIGN KEY (user_id) REFERENCES users(id)
   );
 `);
-const X = ["rear_lh", "rear_rh", "front_lh", "front_rh"], H = l.prepare(
+const modelos = ["rear_lh", "rear_rh", "front_lh", "front_rh"];
+const insertModelo = db.prepare(
   "INSERT OR IGNORE INTO modelos (nombre) VALUES (?)"
 );
-X.forEach((s) => H.run(s));
-const $ = l.prepare("SELECT COUNT(*) as count FROM users WHERE rol = 'admin'").get();
-if ($.count === 0) {
-  const s = "admin", a = F.hashSync("admin123", 10);
-  l.prepare(
+modelos.forEach((modelo) => insertModelo.run(modelo));
+const adminExists = db.prepare("SELECT COUNT(*) as count FROM users WHERE rol = 'admin'").get();
+if (adminExists.count === 0) {
+  const defaultUsername = "admin";
+  const defaultPassword = "admin123";
+  const saltRounds = 10;
+  const hashedPassword = bcrypt$1.hashSync(defaultPassword, saltRounds);
+  db.prepare(
     "INSERT INTO users (nombre, contrasena, rol) VALUES (?, ?, ?)"
-  ).run(s, a, "admin");
+  ).run(defaultUsername, hashedPassword, "admin");
 }
-const V = O(import.meta.url), g = V("bcrypt");
-async function W(s) {
-  const { username: e, password: r } = s;
+const require2 = createRequire(import.meta.url);
+const bcrypt = require2("bcrypt");
+async function Auth(credentials) {
+  const { username, password } = credentials;
   try {
-    if (!e || !r)
-      return { success: !1, message: "Debes de llenar todos los campos" };
-    const a = l.prepare("SELECT * FROM users WHERE nombre = ?").get(e);
-    return !a || !await g.compare(r, a.contrasena) ? { success: !1, message: "Usuario o contraseña incorrectos" } : {
-      success: !0,
+    if (!username || !password) {
+      return { success: false, message: "Debes de llenar todos los campos" };
+    }
+    const userExist = db.prepare("SELECT * FROM users WHERE nombre = ?").get(username);
+    if (!userExist || !await bcrypt.compare(password, userExist.contrasena)) {
+      return { success: false, message: "Usuario o contraseña incorrectos" };
+    }
+    return {
+      success: true,
       message: "Usuario autenticado con éxito",
       user: {
-        id: a.id,
-        username: a.nombre,
-        role: a.rol
+        id: userExist.id,
+        username: userExist.nombre,
+        role: userExist.rol
       }
     };
-  } catch {
-    return { success: !1, message: "Error de conexión" };
+  } catch (err) {
+    return { success: false, message: "Error de conexión" };
   }
 }
-async function v(s) {
-  const { username: e, password: r, role: a } = s;
+async function addUser(credentials) {
+  const { username, password, role } = credentials;
   try {
-    if (!e || !r || !a)
-      return { success: !1, message: "Debes de llenar todos los campos" };
-    if (l.prepare("SELECT * FROM users WHERE nombre = ?").get(e))
-      return { success: !1, message: "Ya existe un usuario con ese nombre" };
-    if (r.length < 6)
+    if (!username || !password || !role) {
+      return { success: false, message: "Debes de llenar todos los campos" };
+    }
+    const userExist = db.prepare("SELECT * FROM users WHERE nombre = ?").get(username);
+    if (userExist) {
+      return { success: false, message: "Ya existe un usuario con ese nombre" };
+    }
+    if (password.length < 6) {
       return {
-        success: !1,
+        success: false,
         message: "La contraseña debe tener minimo 6 caracteres"
       };
-    const d = await g.hash(r, 10);
-    return l.prepare(
+    }
+    const passwordHash = await bcrypt.hash(password, 10);
+    db.prepare(
       "INSERT INTO users (nombre, contrasena, rol) VALUES (?, ?, ?)"
-    ).run(e, d, a), {
-      success: !0,
+    ).run(username, passwordHash, role);
+    return {
+      success: true,
       message: "Usuario creado con éxito",
-      username: e
+      username
     };
-  } catch (n) {
-    return { success: !1, message: `Error al crear el usuario: ${n}` };
+  } catch (err) {
+    return { success: false, message: `Error al crear el usuario: ${err}` };
   }
 }
-async function Y(s) {
+async function deleteUser(username) {
   try {
-    return s ? l.prepare("SELECT * FROM users WHERE nombre = ?").get(s) ? (l.prepare("DELETE FROM users WHERE nombre = ?").run(s), {
-      success: !0,
+    if (!username) {
+      return { success: false, message: "Debes de llenar todos los campos" };
+    }
+    const userExist = db.prepare("SELECT * FROM users WHERE nombre = ?").get(username);
+    if (!userExist) {
+      return { success: false, message: "No existe ese usuario" };
+    }
+    db.prepare("DELETE FROM users WHERE nombre = ?").run(username);
+    return {
+      success: true,
       message: "Usuario eliminado con éxito",
-      username: s
-    }) : { success: !1, message: "No existe ese usuario" } : { success: !1, message: "Debes de llenar todos los campos" };
-  } catch {
-    return { success: !1, message: "Error al eliminar el usuario" };
+      username
+    };
+  } catch (err) {
+    return { success: false, message: `Error al eliminar el usuario` };
   }
 }
-async function j(s, e, r) {
+async function changePassword(idUser, currentPassword, newPassword) {
   try {
-    if (!r || !e)
-      return { success: !1, message: "Debes de llenar todos los campos" };
-    if (r.length < 6)
+    if (!newPassword || !currentPassword) {
+      return { success: false, message: "Debes de llenar todos los campos" };
+    }
+    if (newPassword.length < 6) {
       return {
-        success: !1,
+        success: false,
         message: "La contraseña debe tener minimo 6 caracteres"
       };
-    const a = l.prepare("SELECT contrasena FROM users WHERE id = ?").get(s);
-    if (!a || !await g.compare(e, a.contrasena))
-      return { success: !1, message: "Contraseña actual incorrecta" };
-    const n = await g.hash(r, 10);
-    return l.prepare("UPDATE users SET contrasena = ? WHERE id = ?").run(
-      n,
-      s
-    ), {
-      success: !0,
+    }
+    const comparePassword = db.prepare("SELECT contrasena FROM users WHERE id = ?").get(idUser);
+    if (!comparePassword || !await bcrypt.compare(currentPassword, comparePassword.contrasena)) {
+      return { success: false, message: "Contraseña actual incorrecta" };
+    }
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    db.prepare("UPDATE users SET contrasena = ? WHERE id = ?").run(
+      passwordHash,
+      idUser
+    );
+    return {
+      success: true,
       message: "Contraseña cambiada con éxito"
     };
-  } catch {
+  } catch (error) {
     return {
-      success: !1,
-      message: "Error al cambiar la contraseña"
+      success: false,
+      message: `Error al cambiar la contraseña`
     };
   }
 }
-function G() {
-  p.handle(
+function registerUserHandlers() {
+  ipcMain.handle(
     "users:auth",
-    (s, e) => W(e)
-  ), p.handle(
+    (_e, credentials) => Auth(credentials)
+  );
+  ipcMain.handle(
     "users:create",
-    (s, e) => v(e)
-  ), p.handle(
+    (_e, credentials) => addUser(credentials)
+  );
+  ipcMain.handle(
     "users:delete",
-    (s, e) => Y(e)
-  ), p.handle(
+    (_e, username) => deleteUser(username)
+  );
+  ipcMain.handle(
     "users:changePassword",
-    (s, e, r, a) => j(e, r, a)
+    (_e, idUser, currentPassword, newPassword) => changePassword(idUser, currentPassword, newPassword)
   );
 }
-const q = R.getPath("userData"), B = M(q, "script.py"), K = async ({ port: s, mm: e, zero: r, device: a }) => new Promise((n) => {
-  x(
-    `py "${B}" ${s} ${e} ${r} ${a} `,
-    (d, u, t) => {
-      if (d)
-        n(`Error: ${d.message}`), console.log(d.message);
-      else if (t)
-        n(`Error: ${t}`), console.log(t);
-      else {
-        const i = u.match(/Lectura:\s*([\d.]+)/);
-        i ? (console.log(i[1]), n(i[1])) : n(u.trim());
+const basePath = app.getPath("userData");
+const sensorPath = join(basePath, "script.py");
+const readSensor = async ({ port, mm, zero, device }) => {
+  return new Promise((resolve) => {
+    exec(
+      `py "${sensorPath}" ${port} ${mm} ${zero} ${device} `,
+      (error, stdout, stderr) => {
+        if (error) {
+          resolve(`Error: ${error.message}`);
+          console.log(error.message);
+        } else if (stderr) {
+          resolve(`Error: ${stderr}`);
+          console.log(stderr);
+        } else {
+          const match = stdout.match(/Lectura:\s*([\d.]+)/);
+          if (match) {
+            console.log(match[1]);
+            resolve(match[1]);
+          } else {
+            resolve(stdout.trim());
+          }
+        }
       }
-    }
-  );
-});
-function z() {
-  p.handle("sensor:read", (s, e) => K(e));
+    );
+  });
+};
+function registerSensorHandlers() {
+  ipcMain.handle("sensor:read", (_e, config) => {
+    return readSensor(config);
+  });
 }
-function k(s) {
-  const { modeloId: e, userId: r, measurements: a } = s;
+function saveMeasurements(measurement) {
+  const { modeloId, userId, measurements } = measurement;
   try {
-    return l.prepare(
+    const insert = db.prepare(
       `INSERT INTO mediciones (modelo_id, user_id, medida1, medida2, medida3, medida4)
        VALUES (?, ?, ?, ?, ?, ?)`
-    ).run(
-      e,
-      r,
-      a[0],
-      a[1],
-      a[2],
-      a[3]
-    ), { success: !0, message: "Mediciones guardadas con éxito" };
-  } catch (n) {
-    return console.error("Error al guardar las mediciones:", n), { success: !1, message: n };
+    );
+    insert.run(
+      modeloId,
+      userId,
+      measurements[0],
+      measurements[1],
+      measurements[2],
+      measurements[3]
+    );
+    return { success: true, message: "Mediciones guardadas con éxito" };
+  } catch (error) {
+    console.error("Error al guardar las mediciones:", error);
+    return { success: false, message: error };
   }
 }
-function Q() {
-  p.handle("measurements:save", async (s, e) => await k(e));
+function registerMeasurementHandlers() {
+  ipcMain.handle("measurements:save", async (_e, measurement) => {
+    return await saveMeasurements(measurement);
+  });
 }
-function J(s, e, r) {
-  const a = ["medida1", "medida2", "medida3", "medida4"], n = [];
-  for (const u of a) {
-    let t = `SELECT COUNT(${u}) AS total FROM mediciones WHERE modelo_id = ?`;
-    const i = [s];
-    e && (t += " AND fecha >= ?", i.push(e)), r && (t += " AND fecha <= ?", i.push(r)), l.prepare(t).get(...i)?.total > 0 && n.push(u);
+function getGroupedStats(modeloId, startDate, endDate) {
+  const posiblesMedidas = ["medida1", "medida2", "medida3", "medida4"];
+  const medidasValidas = [];
+  for (const medida of posiblesMedidas) {
+    let query = `SELECT COUNT(${medida}) AS total FROM mediciones WHERE modelo_id = ?`;
+    const params = [modeloId];
+    if (startDate) {
+      query += ` AND fecha >= ?`;
+      params.push(startDate);
+    }
+    if (endDate) {
+      query += ` AND fecha <= ?`;
+      params.push(endDate);
+    }
+    const row = db.prepare(query).get(...params);
+    if (row?.total > 0) medidasValidas.push(medida);
   }
-  const d = [];
-  for (const u of n) {
-    let t = `SELECT ${u} AS valor FROM mediciones WHERE modelo_id = ? AND ${u} IS NOT NULL`;
-    const i = [s];
-    e && (t += " AND fecha >= ?", i.push(e)), r && (t += " AND fecha <= ?", i.push(r)), t += " ORDER BY fecha ASC";
-    const m = l.prepare(t).all(...i);
-    for (let E = 0; E < m.length; E += 5) {
-      const o = m.slice(E, E + 5).map((N) => Number(N.valor));
-      if (!o.length) continue;
-      const c = o.reduce((N, w) => N + w, 0) / o.length, h = Math.max(...o) - Math.min(...o);
-      d.push({
-        medida: u,
-        grupo: Math.floor(E / 5) + 1,
-        prom: Number(c.toFixed(3)),
-        rango: Number(h.toFixed(3)),
-        numeros: o
+  const resultados = [];
+  for (const medida of medidasValidas) {
+    let query = `SELECT ${medida} AS valor FROM mediciones WHERE modelo_id = ? AND ${medida} IS NOT NULL`;
+    const params = [modeloId];
+    if (startDate) {
+      query += ` AND fecha >= ?`;
+      params.push(startDate);
+    }
+    if (endDate) {
+      query += ` AND fecha <= ?`;
+      params.push(endDate);
+    }
+    query += ` ORDER BY fecha ASC`;
+    const rows = db.prepare(query).all(...params);
+    for (let i = 0; i < rows.length; i += 5) {
+      const grupo = rows.slice(i, i + 5).map((r) => Number(r.valor));
+      if (!grupo.length) continue;
+      const prom = grupo.reduce((a, b) => a + b, 0) / grupo.length;
+      const rango = Math.max(...grupo) - Math.min(...grupo);
+      resultados.push({
+        medida,
+        grupo: Math.floor(i / 5) + 1,
+        prom: Number(prom.toFixed(3)),
+        rango: Number(rango.toFixed(3)),
+        numeros: grupo
       });
     }
   }
-  return d;
+  return resultados;
 }
-function Z(s, e) {
-  return s.filter((r) => r.medida === e);
+function filtrarPorMedida(datos, medida) {
+  return datos.filter((item) => item.medida === medida);
 }
-function ee(s, e, r) {
-  if (s.length === 0) return null;
-  const a = s.flatMap((c) => c.numeros), n = a.reduce((c, h) => c + h, 0) / a.length, d = s.reduce((c, h) => c + h.rango, 0) / s.length;
-  let u = n + 0.577 * d;
-  u = u + 2e-5 * u;
-  let t = n - 0.577 * d;
-  t = t - 2e-5 * t;
-  const i = 2.114 * d, m = d / 2.326, E = Math.min((e - n) / (3 * m), (n - r) / (3 * m)), o = (e - r) / (6 * m);
+function calcDataForChart(datos, LSE, LIE) {
+  if (datos.length === 0) return null;
+  const todosLosNumeros = datos.flatMap((item) => item.numeros);
+  const Xmed = todosLosNumeros.reduce((a, b) => a + b, 0) / todosLosNumeros.length;
+  const Rmed = datos.reduce((acc, item) => acc + item.rango, 0) / datos.length;
+  let LSCX = Xmed + 0.577 * Rmed;
+  LSCX = LSCX + 2e-5 * LSCX;
+  let LICX = Xmed - 0.577 * Rmed;
+  LICX = LICX - 2e-5 * LICX;
+  const LSCR = 2.114 * Rmed;
+  const sigma = Rmed / 2.326;
+  const CPK = Math.min((LSE - Xmed) / (3 * sigma), (Xmed - LIE) / (3 * sigma));
+  const CP = (LSE - LIE) / (6 * sigma);
   return {
-    Xmed: Number(n.toFixed(1)),
-    LSCX: Number(u.toFixed(2)),
-    LICX: Number(t.toFixed(2)),
-    LSCR: Number(i.toFixed(3)),
-    CPK: Number(E.toFixed(2)),
-    sigma: Number(m.toFixed(4)),
-    CP: Number(o.toFixed(2))
+    Xmed: Number(Xmed.toFixed(1)),
+    LSCX: Number(LSCX.toFixed(2)),
+    LICX: Number(LICX.toFixed(2)),
+    LSCR: Number(LSCR.toFixed(3)),
+    CPK: Number(CPK.toFixed(2)),
+    sigma: Number(sigma.toFixed(4)),
+    CP: Number(CP.toFixed(2))
   };
 }
-function se(s) {
-  if (!s || s.length < 6)
+function detectarTendencia(stats) {
+  if (!stats || stats.length < 6) {
     return { tendencia: "estable", pendiente: 0 };
-  const e = s.slice(5).map((o) => o.Xmed), r = e.length, a = Array.from({ length: r }, (o, c) => c + 1), n = a.reduce((o, c) => o + c, 0), d = e.reduce((o, c) => o + c, 0), u = a.reduce((o, c, h) => o + c * e[h], 0), t = a.reduce((o, c) => o + c * c, 0), i = (r * u - n * d) / (r * t - n * n);
-  let m;
-  const E = 0.02;
-  return i > E ? m = "aumento" : i < -E ? m = "descenso" : m = "estable", { tendencia: m, pendiente: Number(i.toFixed(4)) };
+  }
+  const datos = stats.slice(5).map((s) => s.Xmed);
+  const n = datos.length;
+  const x = Array.from({ length: n }, (_, i) => i + 1);
+  const sumX = x.reduce((a, b) => a + b, 0);
+  const sumY = datos.reduce((a, b) => a + b, 0);
+  const sumXY = x.reduce((acc, xi, i) => acc + xi * datos[i], 0);
+  const sumX2 = x.reduce((acc, xi) => acc + xi * xi, 0);
+  const pendiente = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+  let tendencia;
+  const umbral = 0.02;
+  if (pendiente > umbral) tendencia = "aumento";
+  else if (pendiente < -umbral) tendencia = "descenso";
+  else tendencia = "estable";
+  return { tendencia, pendiente: Number(pendiente.toFixed(4)) };
 }
-function re() {
-  p.handle(
+function registerChartHandlers() {
+  ipcMain.handle(
     "chart:getGroupedStats",
-    async (s, e, r, a) => await J(e, r, a)
-  ), p.handle(
+    async (_e, model, startDate, endDate) => {
+      return await getGroupedStats(model, startDate, endDate);
+    }
+  );
+  ipcMain.handle(
     "chart:filtrarPorMedida",
-    async (s, e, r) => await Z(e, r)
-  ), p.handle(
+    async (_e, datos, medida) => {
+      return await filtrarPorMedida(datos, medida);
+    }
+  );
+  ipcMain.handle(
     "chart:calcDataForChart",
-    async (s, e, r, a) => await ee(e, r, a)
-  ), p.handle("chart:detectarTendencia", async (s, e) => await se(e));
+    async (_e, datos, LSE, LIE) => {
+      return await calcDataForChart(datos, LSE, LIE);
+    }
+  );
+  ipcMain.handle("chart:detectarTendencia", async (_e, datos) => {
+    return await detectarTendencia(datos);
+  });
 }
-const I = f.dirname(U(import.meta.url));
-process.env.APP_ROOT = f.join(I, "..");
-const L = process.env.VITE_DEV_SERVER_URL, ue = f.join(process.env.APP_ROOT, "dist-electron"), A = f.join(process.env.APP_ROOT, "dist");
-process.env.VITE_PUBLIC = L ? f.join(process.env.APP_ROOT, "public") : A;
-let T;
-function _() {
-  const { width: s, height: e } = C.getPrimaryDisplay().workAreaSize;
-  T = new b({
-    icon: f.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
-    width: s,
+const __dirname = path$1.dirname(fileURLToPath(import.meta.url));
+process.env.APP_ROOT = path$1.join(__dirname, "..");
+const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
+const MAIN_DIST = path$1.join(process.env.APP_ROOT, "dist-electron");
+const RENDERER_DIST = path$1.join(process.env.APP_ROOT, "dist");
+process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path$1.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
+let win;
+function createWindow() {
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+  win = new BrowserWindow({
+    icon: path$1.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    width,
     // ancho de la pantalla
-    height: e,
+    height,
     // alto de la pantalla
-    resizable: !1,
+    resizable: false,
     // no se puede cambiar el tamaño
-    minimizable: !1,
+    minimizable: false,
     // no se puede minimizar
-    maximizable: !1,
+    maximizable: false,
     // no se puede maximizar
-    frame: !0,
+    frame: true,
     // mantiene los botones nativos
-    autoHideMenuBar: !0,
+    autoHideMenuBar: true,
     // oculta barra de menú (Edit, View, etc.)
     webPreferences: {
-      preload: f.join(I, "preload.mjs")
+      preload: path$1.join(__dirname, "preload.mjs")
     }
-  }), T.webContents.on("did-finish-load", () => {
-    T?.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
-  }), L ? T.loadURL(L) : T.loadFile(f.join(A, "index.html"));
+  });
+  win.webContents.on("did-finish-load", () => {
+    win?.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
+  });
+  if (VITE_DEV_SERVER_URL) {
+    win.loadURL(VITE_DEV_SERVER_URL);
+  } else {
+    win.loadFile(path$1.join(RENDERER_DIST, "index.html"));
+  }
 }
-R.on("window-all-closed", () => {
-  process.platform !== "darwin" && (R.quit(), T = null);
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
+    win = null;
+  }
 });
-R.on("activate", () => {
-  b.getAllWindows().length === 0 && _();
+app.on("activate", () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
 });
-R.whenReady().then(() => {
-  G(), z(), Q(), re(), _();
+app.whenReady().then(() => {
+  registerUserHandlers();
+  registerSensorHandlers();
+  registerMeasurementHandlers();
+  registerChartHandlers();
+  createWindow();
 });
 export {
-  ue as MAIN_DIST,
-  A as RENDERER_DIST,
-  L as VITE_DEV_SERVER_URL
+  MAIN_DIST,
+  RENDERER_DIST,
+  VITE_DEV_SERVER_URL
 };
