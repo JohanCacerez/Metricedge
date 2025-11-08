@@ -100,6 +100,7 @@ export function MetricChart({
       };
       analizarTendencia();
     }
+    console.log(LSE, LIE);
   }, [statsHistorial]);
 
   // 👇 Prueba inicial de la función de tendencia
@@ -134,8 +135,8 @@ export function MetricChart({
 
   if (!datosMedida1 || !stats) return <div>Cargando...</div>;
 
-  const minY = Math.min(...datosMedida1.map((d) => d.prom), stats.LICX) - 2;
-  const maxY = Math.max(...datosMedida1.map((d) => d.prom), stats.LSCX) + 2;
+  const minY = LIE - 1;
+  const maxY = LSE + 1;
 
   return (
     <div className="p-4 bg-white rounded-2xl shadow-md text-text-inverse font-body">
@@ -224,6 +225,18 @@ export function MetricChart({
           stroke="#FFA500"
           strokeDasharray="5 5"
           label="LIC"
+        />
+        <ReferenceLine
+          y={LSE}
+          stroke="#008000"
+          strokeDasharray="4 4"
+          label={{ value: "LSE", position: "right", fill: "#008000" }}
+        />
+        <ReferenceLine
+          y={LIE}
+          stroke="#008000"
+          strokeDasharray="4 4"
+          label={{ value: "LIE", position: "right", fill: "#008000" }}
         />
       </LineChart>
     </div>

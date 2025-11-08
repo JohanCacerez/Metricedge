@@ -42,18 +42,49 @@ const models: Model[] = [
 export const ModelSelector = () => {
   const { activeModel, setActiveModel } = useModelStore();
   const [selectedModel, setSelectedModel] = useState(activeModel?.id || "");
-  const [lse, setLse] = useState(localStorage.getItem("lse") || "");
-  const [lie, setLie] = useState(localStorage.getItem("lie") || "");
+  const [limits, setLimits] = useState<{ lse: string; lie: string }[]>([]);
 
+  // 🔹 Determina cuántos pares mostrar
+  const getNumPairs = (modelId: string) => {
+    if (modelId === "rear-lh" || modelId === "rear-rh") return 4;
+    if (modelId === "front-lh" || modelId === "front-rh") return 3;
+    return 0;
+  };
+
+  // 🔹 Cargar datos del modelo actual desde localStorage
   useEffect(() => {
-    // Si hay un modelo activo, setear los valores en los inputs
-    if (activeModel) {
-      setSelectedModel(activeModel.id);
+    if (selectedModel) {
+      const stored = localStorage.getItem(`${selectedModel}-limits`);
+      if (stored) {
+        setLimits(JSON.parse(stored));
+      } else {
+        // Inicializa vacíos según el modelo
+        const pairs = Array.from(
+          { length: getNumPairs(selectedModel) },
+          () => ({
+            lse: "",
+            lie: "",
+          })
+        );
+        setLimits(pairs);
+      }
     }
-  }, [activeModel]);
+  }, [selectedModel]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedModel(e.target.value);
+  };
+
+  const handleInputChange = (
+    index: number,
+    field: "lse" | "lie",
+    value: string
+  ) => {
+    setLimits((prev) => {
+      const updated = [...prev];
+      updated[index][field] = value;
+      return updated;
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -64,15 +95,21 @@ export const ModelSelector = () => {
       return;
     }
 
-    setActiveModel(model);
-    localStorage.setItem("lse", lse);
-    localStorage.setItem("lie", lie);
+    // Guarda los valores en localStorage
+    localStorage.setItem(`${selectedModel}-limits`, JSON.stringify(limits));
 
-    toast.info(`Modelo ${model.name} activado. LSE: ${lse}, LIE: ${lie}`);
+    // También puedes guardar los primeros (opcional, compatibilidad con código actual)
+    localStorage.setItem("lse", limits[0]?.lse || "");
+    localStorage.setItem("lie", limits[0]?.lie || "");
+
+    setActiveModel(model);
+    toast.success(
+      `Modelo ${model.name} activado con ${limits.length} pares de límites.`
+    );
   };
 
   return (
-    <section className="flex flex-col justify-center items-center p-6 border border-border rounded-2xl shadow-">
+    <section className="flex flex-col justify-center items-center p-6 border border-border rounded-2xl shadow-md">
       <h1 className="text-2xl font-title text-text mb-6">Activar Modelo</h1>
 
       <form
@@ -85,8 +122,8 @@ export const ModelSelector = () => {
         <select
           id="model"
           value={selectedModel}
-          onChange={handleChange}
-          className="p-4 text-lg font-ui border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
+          onChange={handleModelChange}
+          className="p-3 text-lg border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
         >
           <option value="">--Selecciona--</option>
           {models.map((model) => (
@@ -96,27 +133,28 @@ export const ModelSelector = () => {
           ))}
         </select>
 
-        <label htmlFor="lse" className="text-lg font-body text-text">
-          LSE:
-        </label>
-        <input
-          type="number"
-          id="lse"
-          value={lse}
-          onChange={(e) => setLse(e.target.value)}
-          className="p-4 text-lg font-ui border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
-
-        <label htmlFor="lie" className="text-lg font-body text-text">
-          LIE:
-        </label>
-        <input
-          type="number"
-          id="lie"
-          value={lie}
-          onChange={(e) => setLie(e.target.value)}
-          className="p-4 text-lg font-ui border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
+        {limits.map((lim, index) => (
+          <div key={index} className="flex gap-2 items-center">
+            <label className="text-md text-text font-semibold">
+              LSE {index + 1}:
+            </label>
+            <input
+              type="number"
+              value={lim.lse}
+              onChange={(e) => handleInputChange(index, "lse", e.target.value)}
+              className="p-2 border rounded w-24"
+            />
+            <label className="text-md text-text font-semibold">
+              LIE {index + 1}:
+            </label>
+            <input
+              type="number"
+              value={lim.lie}
+              onChange={(e) => handleInputChange(index, "lie", e.target.value)}
+              className="p-2 border rounded w-24"
+            />
+          </div>
+        ))}
 
         <button
           type="submit"

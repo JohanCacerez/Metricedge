@@ -1,26 +1,42 @@
+import { useState, useEffect } from "react";
 import { MetricChart } from "../../components/Charts/MetricChart";
 import Metric from "../../components/Mediciones/Medicion/Metric";
-
 import { useModelStore } from "../../store/modelStore";
-
-import { useState, useEffect } from "react";
 
 export default function Index() {
   const { activeModel } = useModelStore();
-  const [lse, setLse] = useState("");
-  const [lie, setLie] = useState("");
+  const [limites, setLimites] = useState<
+    Record<string, { lse: string; lie: string }>
+  >({});
 
   useEffect(() => {
-    const storedLse = localStorage.getItem("lse") || "";
-    const storedLie = localStorage.getItem("lie") || "";
+    if (!activeModel) return;
 
-    setLse(storedLse);
-    setLie(storedLie);
-  }, []);
+    // Leemos el array completo guardado en el storage del modelo
+    const stored = localStorage.getItem(`${activeModel.id}-limits`);
+    if (stored) {
+      const arr = JSON.parse(stored); // 👈 Esto debe ser un array de objetos [{lse,lie}, ...]
+      const nuevosLimites: Record<string, { lse: string; lie: string }> = {};
+
+      // Dependiendo del modelo, asignamos los valores por orden
+      let medidas: string[] = [];
+      if (activeModel.id === "front-lh" || activeModel.id === "front-rh") {
+        medidas = ["F7", "F6", "F1"];
+      } else if (activeModel.id === "rear-lh" || activeModel.id === "rear-rh") {
+        medidas = ["F14", "F15", "F1", "F8"];
+      }
+
+      medidas.forEach((m, i) => {
+        nuevosLimites[m] = arr[i] || { lse: "0", lie: "0" }; // 👈 asigna en orden
+      });
+
+      console.log("✅ Límites cargados:", nuevosLimites);
+      setLimites(nuevosLimites);
+    }
+  }, [activeModel]);
 
   if (!activeModel) return <div>Cargando modelo activo...</div>;
 
-  // Definir las gráficas según el modelo
   let graficas: { medida: string; width: number; medicion: string }[] = [];
 
   if (activeModel.id === "front-lh" || activeModel.id === "front-rh") {
@@ -41,8 +57,9 @@ export default function Index() {
   return (
     <div className="flex flex-col h-full text-text">
       <div className="flex justify-center mb-2">
-        <h1 className="text-text font-title text-4xl">Medicion</h1>
+        <h1 className="text-text font-title text-4xl">Medición</h1>
       </div>
+
       <div className="flex-1 flex flex-col gap-2">
         <section className="flex-[1] h-[50vh] bg-surface shadow-md border border-border rounded-2xl p-4">
           <div className="flex flex-row flex-wrap gap-2">
@@ -52,13 +69,14 @@ export default function Index() {
                 width={g.width}
                 medida={g.medida}
                 modeloId={activeModel.id}
-                LSE={Number(lse)}
-                LIE={Number(lie)}
+                LSE={Number(limites[g.medida]?.lse || 0)}
+                LIE={Number(limites[g.medida]?.lie || 0)}
                 medicion={g.medicion}
               />
             ))}
           </div>
         </section>
+
         <section className="flex-[1] h-[50vh] bg-surface shadow-md border border-border rounded-2xl p-4">
           <Metric />
         </section>
