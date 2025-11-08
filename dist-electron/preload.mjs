@@ -16,7 +16,8 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
     read: (config) => electron.ipcRenderer.invoke("sensor:read", config)
   },
   measurements: {
-    save: (measurement) => electron.ipcRenderer.invoke("measurements:save", measurement)
+    save: (measurement) => electron.ipcRenderer.invoke("measurements:save", measurement),
+    getAll: (modeloId, userId) => electron.ipcRenderer.invoke("measurements:getAll", modeloId, userId)
   },
   chart: {
     getGroupedStats: (model, startDate, endDate) => electron.ipcRenderer.invoke("chart:getGroupedStats", model, startDate, endDate),

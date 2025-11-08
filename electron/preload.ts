@@ -31,6 +31,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   measurements: {
     save: (measurement: Measurement) =>
       ipcRenderer.invoke("measurements:save", measurement),
+    getAll: (modeloId?: number, userId?: number) =>
+      ipcRenderer.invoke("measurements:getAll", modeloId, userId),
   },
   chart: {
     getGroupedStats: (model: string, startDate?: string, endDate?: string) =>

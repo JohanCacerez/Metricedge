@@ -24,3 +24,31 @@ export function saveMeasurements(measurement: Measurement) {
     return { success: false, message: error };
   }
 }
+
+export function getMeasurements(modeloId?: number, userId?: number) {
+  try {
+    let query = `SELECT * FROM mediciones`;
+    const params: (number | string)[] = [];
+
+    if (modeloId || userId) {
+      query += ` WHERE`;
+      if (modeloId) {
+        query += ` modelo_id = ?`;
+        params.push(modeloId);
+      }
+      if (userId) {
+        if (modeloId) query += ` AND`;
+        query += ` user_id = ?`;
+        params.push(userId);
+      }
+    }
+
+    query += ` ORDER BY fecha DESC`;
+
+    const rows = db.prepare(query).all(...params);
+    return { success: true, data: rows };
+  } catch (error) {
+    console.error("Error al obtener mediciones:", error);
+    return { success: false, message: error };
+  }
+}

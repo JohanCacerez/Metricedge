@@ -38,6 +38,10 @@ export interface MeasurementAPI {
   save: (
     measurement: Measurement
   ) => Promise<{ success: boolean; message: string }>;
+  getAll: (
+    modeloId?: number,
+    userId?: number
+  ) => Promise<{ success: boolean; data?: any[]; message?: string }>;
 }
 
 export interface ChartAPI {

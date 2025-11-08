@@ -55,7 +55,7 @@ export const Sidebar = ({ userName }: SidebarProps) => {
           to={"/"}
           className="flex items-center w-full font-body p-2 rounded cursor-pointer hover:bg-secondary-dark"
         >
-          <MdDashboard className="mr-2" /> Dashboard
+          <MdDashboard className="mr-2" /> Historial
         </NavLink>
         <NavLink
           to={"/mediciones"}

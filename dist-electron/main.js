@@ -223,10 +223,40 @@ function saveMeasurements(measurement) {
     return { success: false, message: error };
   }
 }
+function getMeasurements(modeloId, userId) {
+  try {
+    let query = `SELECT * FROM mediciones`;
+    const params = [];
+    if (modeloId || userId) {
+      query += ` WHERE`;
+      if (modeloId) {
+        query += ` modelo_id = ?`;
+        params.push(modeloId);
+      }
+      if (userId) {
+        if (modeloId) query += ` AND`;
+        query += ` user_id = ?`;
+        params.push(userId);
+      }
+    }
+    query += ` ORDER BY fecha DESC`;
+    const rows = db.prepare(query).all(...params);
+    return { success: true, data: rows };
+  } catch (error) {
+    console.error("Error al obtener mediciones:", error);
+    return { success: false, message: error };
+  }
+}
 function registerMeasurementHandlers() {
   ipcMain.handle("measurements:save", async (_e, measurement) => {
     return await saveMeasurements(measurement);
   });
+  ipcMain.handle(
+    "measurements:getAll",
+    async (_e, modeloId, userId) => {
+      return await getMeasurements(modeloId, userId);
+    }
+  );
 }
 function getGroupedStats(modeloId, startDate, endDate) {
   const posiblesMedidas = ["medida1", "medida2", "medida3", "medida4"];
